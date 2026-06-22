@@ -1,5 +1,18 @@
 # RentCity Frontend
 
+## Source structure
+
+- `src/main.js`: router and event handlers.
+- `src/data.js`: sample listings, assets, and admin rows.
+- `src/state.js`: localStorage state.
+- `src/selectors.js`: derived data and filtering.
+- `src/utils.js`: small shared helpers.
+- `src/components/shared.js`: shared UI components.
+- `src/pages/web.js`: desktop website.
+- `src/pages/app.js`: mobile app shell.
+- `src/pages/web-app.js`: phone web app/PWA.
+- `src/pages/admin.js`: internal Admin Console.
+
 RentCity hiện là frontend/static app cho tìm trọ, thuê nhà và quản lý nhà thuê. Repo này không có backend; dữ liệu tạm thời đang nằm trong `localStorage` để các luồng frontend có thể thao tác được.
 
 ## Chạy local

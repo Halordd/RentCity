@@ -10,6 +10,21 @@ All frontend source code is inside:
 front-end/
 ```
 
+Module layout:
+
+```text
+front-end/src/main.js
+front-end/src/data.js
+front-end/src/state.js
+front-end/src/selectors.js
+front-end/src/utils.js
+front-end/src/components/shared.js
+front-end/src/pages/web.js
+front-end/src/pages/app.js
+front-end/src/pages/web-app.js
+front-end/src/pages/admin.js
+```
+
 ## Run locally
 
 ```bash
