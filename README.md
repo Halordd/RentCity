@@ -10,25 +10,27 @@ All frontend source code is inside:
 front-end/
 ```
 
-Module layout:
+React/Vite module layout:
 
 ```text
-front-end/src/main.js
+front-end/src/main.jsx
+front-end/src/app/
+front-end/src/api/
+front-end/src/services/
+front-end/src/components/
+front-end/src/features/web/
+front-end/src/features/app/
+front-end/src/features/web-app/
+front-end/src/features/admin/
 front-end/src/data.js
-front-end/src/state.js
-front-end/src/selectors.js
 front-end/src/utils.js
-front-end/src/components/shared.js
-front-end/src/pages/web.js
-front-end/src/pages/app.js
-front-end/src/pages/web-app.js
-front-end/src/pages/admin.js
 ```
 
 ## Run locally
 
 ```bash
 cd front-end
+cmd /c npm install
 cmd /c npm start
 ```
 
