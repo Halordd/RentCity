@@ -22,9 +22,10 @@ RentCity is a frontend-only rental product prototype built as a maintainable Rea
 - `src/features/app/`: mobile app shell.
 - `src/features/web-app/`: phone web app/PWA.
 - `src/features/admin/`: internal Admin Console.
-- `src/data.ts`: sample listings, assets, and admin rows.
+- `src/data.ts`: sample listings and admin rows.
 - `src/types.ts`: shared frontend contracts.
 - `src/utils.ts`: small shared helpers.
+- `public/.rentcity-assets/`: real rental/home images served by Vite.
 
 ## Run Local
 
