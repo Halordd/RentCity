@@ -1,8 +1,48 @@
-import { money } from "../utils.js";
-import { listingsService } from "../services/listings.service.js";
-import { useRentCity } from "../app/AppProvider.jsx";
+import type { ButtonHTMLAttributes, FormEvent, ReactNode } from "react";
+import { money } from "../utils";
+import { listingsService } from "../services/listings.service";
+import { useRentCity } from "../app/useRentCity";
+import type { Listing, NavigateTo } from "../types";
 
-export function Brand({ to = "/web", admin = false, navigate }) {
+interface BrandProps {
+  to?: string;
+  admin?: boolean;
+  navigate: NavigateTo;
+}
+
+interface RouteButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  to: string;
+  navigate: NavigateTo;
+  children: ReactNode;
+}
+
+interface SearchFormProps {
+  compact?: boolean;
+  targetRoute?: string;
+  navigate: NavigateTo;
+}
+
+interface ListingCardProps {
+  item: Listing;
+  variant?: "web" | "mobile";
+  baseRoute?: string;
+  navigate: NavigateTo;
+}
+
+interface EmptyStateProps {
+  title: string;
+  body: string;
+}
+
+interface PhoneShellProps {
+  active?: string;
+  baseRoute?: string;
+  webApp?: boolean;
+  navigate: NavigateTo;
+  children: ReactNode;
+}
+
+export function Brand({ to = "/web", admin = false, navigate }: BrandProps) {
   return (
     <button className={`brand ${admin ? "admin-brand" : ""}`} onClick={() => navigate(to)} aria-label="RentCity home">
       <span className="brand-mark" aria-hidden="true" />
@@ -18,7 +58,7 @@ export function Brand({ to = "/web", admin = false, navigate }) {
   );
 }
 
-export function RouteButton({ to, navigate, className = "btn", children, ...props }) {
+export function RouteButton({ to, navigate, className = "btn", children, ...props }: RouteButtonProps) {
   return (
     <button className={className} type="button" onClick={() => navigate(to)} {...props}>
       {children}
@@ -26,7 +66,7 @@ export function RouteButton({ to, navigate, className = "btn", children, ...prop
   );
 }
 
-export function WebTopbar({ navigate }) {
+export function WebTopbar({ navigate }: { navigate: NavigateTo }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
@@ -43,7 +83,7 @@ export function WebTopbar({ navigate }) {
   );
 }
 
-export function Footer({ navigate }) {
+export function Footer({ navigate }: { navigate: NavigateTo }) {
   return (
     <footer className="footer">
       <div className="footer-inner">
@@ -74,17 +114,17 @@ export function Footer({ navigate }) {
   );
 }
 
-export function SearchForm({ compact = false, targetRoute = "/web/search", navigate }) {
+export function SearchForm({ compact = false, targetRoute = "/web/search", navigate }: SearchFormProps) {
   const { state, dispatch } = useRentCity();
-  function onSubmit(event) {
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     dispatch({
       type: "filters/set",
       payload: {
-        keyword: data.get("keyword") || "",
-        district: data.get("district") || "Tất cả",
-        budget: data.get("budget") || "Tất cả"
+        keyword: String(data.get("keyword") || ""),
+        district: String(data.get("district") || "Tất cả"),
+        budget: String(data.get("budget") || "Tất cả")
       }
     });
     navigate(targetRoute);
@@ -115,7 +155,7 @@ export function SearchForm({ compact = false, targetRoute = "/web/search", navig
   );
 }
 
-export function ListingCard({ item, variant = "web", baseRoute = "/app", navigate }) {
+export function ListingCard({ item, variant = "web", baseRoute = "/app", navigate }: ListingCardProps) {
   const { state, dispatch, notify } = useRentCity();
   const saved = state.saved.includes(item.id);
   const toggleSave = () => {
@@ -169,7 +209,7 @@ export function ListingCard({ item, variant = "web", baseRoute = "/app", navigat
   );
 }
 
-export function ListingTile({ item, navigate }) {
+export function ListingTile({ item, navigate }: { item: Listing; navigate: NavigateTo }) {
   const { state, dispatch, notify } = useRentCity();
   const saved = state.saved.includes(item.id);
   return (
@@ -190,7 +230,7 @@ export function ListingTile({ item, navigate }) {
   );
 }
 
-export function MapPanel({ navigate }) {
+export function MapPanel({ navigate }: { navigate: NavigateTo }) {
   return (
     <aside className="card map-card">
       <div className="listing-title">
@@ -219,7 +259,7 @@ export function MapPanel({ navigate }) {
   );
 }
 
-export function EmptyState({ title, body }) {
+export function EmptyState({ title, body }: EmptyStateProps) {
   return (
     <div className="empty-state">
       <div>
@@ -230,11 +270,11 @@ export function EmptyState({ title, body }) {
   );
 }
 
-export function PhoneShell({ active, baseRoute = "/app", webApp = false, navigate, children }) {
+export function PhoneShell({ active, baseRoute = "/app", webApp = false, navigate, children }: PhoneShellProps) {
   const nav = webApp
     ? [["dashboard", "Home"], ["search", "Tìm"], ["manage", "Quản lý"], ["bookings", "Lịch"], ["profile", "Tôi"]]
     : [["home", "Home"], ["search", "Tìm"], ["saved", "Lưu"], ["bookings", "Lịch"], ["profile", "Tôi"]];
-  const activeKey = active === "booking" ? "bookings" : ["saved", "messages", "payments", "account"].includes(active) ? "profile" : active;
+  const activeKey = active === "booking" ? "bookings" : ["saved", "messages", "payments", "account"].includes(active ?? "") ? "profile" : active;
   const contentClass = active === "messages" ? "phone-content phone-content-chat" : "phone-content";
 
   return (

@@ -156,15 +156,15 @@ PWA:
 
 ## 13. Frontend Integration Notes
 
-- Hiện frontend dùng `localStorage` trong `src/app.js` qua `loadState()` và `persist()`.
-- Khi có BE, thay các thao tác này bằng API calls:
-  - Search/filter listing: thay `filteredListings()`.
-  - Save listing: handler `[data-save]`.
-  - Booking: handler `[data-booking-form]`.
-  - Message: handler `[data-message-form]`.
-  - Payment: handler `[data-payment]`.
-  - Admin action: handler `[data-admin-action]`.
-- Frontend route hiện dùng path routing, server static fallback về `index.html`:
+- Frontend hiện dùng React + TypeScript, state tạm nằm trong `src/app/AppProvider.tsx`.
+- Shared contracts nằm trong `src/types.ts`; backend nên map response theo các model `Listing`, `Booking`, `Message`, `AppState`.
+- API client placeholder nằm ở `src/api/httpClient.ts` và đọc `VITE_API_BASE_URL`.
+- Khi có BE, thay mock reads trong service layer bằng API calls:
+  - Listing search/detail/saved: `src/services/listings.service.ts`.
+  - Booking create/reschedule/cancel: `src/services/bookings.service.ts`.
+  - Admin rows/metrics/actions: `src/services/admin.service.ts`.
+  - User state, messages, payment, OTP: tách tiếp thành `user.service.ts`, `messages.service.ts`, `payments.service.ts`, `auth.service.ts`.
+- Frontend route hiện dùng React Router path routing, production server cần fallback về `index.html`:
   - `/web`
   - `/web/search`
   - `/web/listing/:id`

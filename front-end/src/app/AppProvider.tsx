@@ -1,8 +1,10 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { AppContext } from "./rentCityContext";
+import type { AppAction, AppState, ChildrenProps } from "../types";
 
 const STORE_KEY = "rentcity.production.state";
 
-const initialState = {
+const initialState: AppState = {
   filters: { keyword: "", district: "Tất cả", budget: "Tất cả" },
   saved: ["studio-q7"],
   bookings: [
@@ -16,15 +18,15 @@ const initialState = {
   lastPayment: "ready"
 };
 
-function loadState() {
+function loadState(): AppState {
   try {
-    return { ...initialState, ...JSON.parse(localStorage.getItem(STORE_KEY) || "{}") };
+    return { ...initialState, ...JSON.parse(localStorage.getItem(STORE_KEY) || "{}") } as AppState;
   } catch {
     return initialState;
   }
 }
 
-function reducer(state, action) {
+function reducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "filters/set":
       return { ...state, filters: action.payload };
@@ -51,9 +53,7 @@ function reducer(state, action) {
   }
 }
 
-const AppContext = createContext(null);
-
-export function AppProvider({ children }) {
+export function AppProvider({ children }: ChildrenProps) {
   const [state, dispatch] = useReducer(reducer, undefined, loadState);
   const [toast, setToast] = useState("");
 
@@ -67,7 +67,7 @@ export function AppProvider({ children }) {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const notify = useCallback((message) => setToast(message), []);
+  const notify = useCallback((message: string) => setToast(message), []);
   const value = useMemo(() => ({ state, dispatch, notify }), [notify, state]);
 
   return (
@@ -78,10 +78,4 @@ export function AppProvider({ children }) {
       </div>
     </AppContext.Provider>
   );
-}
-
-export function useRentCity() {
-  const context = useContext(AppContext);
-  if (!context) throw new Error("useRentCity must be used inside AppProvider");
-  return context;
 }

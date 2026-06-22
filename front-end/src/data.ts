@@ -1,3 +1,5 @@
+import type { AdminRows, Listing } from "./types";
+
 export const assets = {
   apartment: "/.rentcity-assets/rentcity-apartment.jpg",
   bedroom: "/.rentcity-assets/rentcity-bedroom.jpg",
@@ -6,7 +8,7 @@ export const assets = {
   livingroom: "/.rentcity-assets/rentcity-livingroom.jpg"
 };
 
-export const listings = [
+export const listings: Listing[] = [
   {
     id: "studio-q7",
     title: "Studio mới gần Crescent Mall",
@@ -119,7 +121,7 @@ export const listings = [
   }
 ];
 
-export const adminRows = {
+export const adminRows: AdminRows = {
   listings: [
     ["Studio mới gần Crescent Mall", "Đã duyệt", "5.8tr", "92/100"],
     ["Căn hộ 1PN Sunrise City", "Đang chạy", "8.2tr", "88/100"],
@@ -140,6 +142,6 @@ export const adminRows = {
   ]
 };
 
-export function listingById(id) {
+export function listingById(id?: string): Listing {
   return listings.find((item) => item.id === id) || listings[0];
 }

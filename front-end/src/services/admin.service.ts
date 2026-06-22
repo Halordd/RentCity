@@ -1,6 +1,11 @@
-import { adminRows } from "../data.js";
+import { adminRows } from "../data";
+import type { AdminRows, DataRow } from "../types";
 
-export const adminService = {
+export const adminService: {
+  rows: AdminRows;
+  auditRows: DataRow[];
+  financeRows: DataRow[];
+} = {
   rows: adminRows,
   auditRows: [
     ["20/06 09:42", "Verifier Lan", "Duyệt KYC Anh Minh Nguyễn", "Thành công"],

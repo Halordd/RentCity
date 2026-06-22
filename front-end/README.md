@@ -1,57 +1,71 @@
 # RentCity Frontend
 
-## Source structure
+RentCity is a frontend-only rental product prototype built as a maintainable React/Vite app. It separates the public web, mobile app shell, phone web app/PWA, and internal admin console into feature modules.
 
-- `src/main.jsx`: React entrypoint.
-- `src/app/`: provider, router, app shell.
-- `src/api/`: backend HTTP client placeholder.
-- `src/services/`: feature services that can later call backend APIs.
+## Stack
+
+- React 19
+- Vite 6
+- TypeScript strict mode
+- React Router
+- ESLint flat config
+- Local mock data and `localStorage` state until backend APIs are ready
+
+## Source Structure
+
+- `src/main.tsx`: React entrypoint.
+- `src/app/`: app provider, router bridge, context, shared hook.
+- `src/api/`: typed HTTP client placeholder for backend integration.
+- `src/services/`: feature services that currently read mock data and can later call real APIs.
 - `src/components/`: reusable UI components.
 - `src/features/web/`: desktop website.
 - `src/features/app/`: mobile app shell.
 - `src/features/web-app/`: phone web app/PWA.
 - `src/features/admin/`: internal Admin Console.
-- `src/data.js`: sample listings, assets, and admin rows.
-- `src/utils.js`: small shared helpers.
+- `src/data.ts`: sample listings, assets, and admin rows.
+- `src/types.ts`: shared frontend contracts.
+- `src/utils.ts`: small shared helpers.
 
-RentCity hiện là frontend/static app cho tìm trọ, thuê nhà và quản lý nhà thuê. Repo này không có backend; dữ liệu tạm thời đang nằm trong `localStorage` để các luồng frontend có thể thao tác được.
-
-## Chạy local
-
-```bash
-npm start
-```
-
-Mặc định app chạy tại `http://localhost:4173`. Có thể đổi port:
-
-```bash
-PORT=4174 npm start
-```
-
-Trên PowerShell nếu `npm` bị chặn execution policy, chạy:
-
-```bash
-cmd /c npm start
-```
-
-## Kiểm tra
+## Run Local
 
 ```bash
 cmd /c npm install
-cmd /c npm run check
-cmd /c npm run build
+cmd /c npm start
 ```
 
-## Các nền tảng
+Default URL:
 
-- Web: `/web` cho website desktop, gồm landing, search/filter, listing detail, booking, saved homes, messages, payments, post listing và owner dashboard. Owner dashboard chỉ dành cho chủ nhà quản lý tin của họ.
-- App: `/app` cho mobile app shell, gồm home, search, listing detail, booking, saved homes, bookings, messages, payments và profile.
-- Web app: `/web_app` cho PWA/web chạy trên trình duyệt phone, gồm tìm nhà, xem tin, booking, quản lý nhà đang thuê, lịch xem, messages, payments và hồ sơ.
-- Admin: `/admin` cho back-office nội bộ, tách khỏi owner dashboard, gồm command center, kiểm duyệt tin, KYC chủ nhà, quy tắc hệ thống, tài chính đối soát, khiếu nại, audit logs, phân quyền và settings.
+```text
+http://localhost:4173
+```
 
-## Ghi chú frontend
+Use another port:
 
-- Server chỉ phục vụ static file. Các request `/api/*` trả `404` để không giả lập backend.
-- Ảnh thật đang nằm trong `.rentcity-assets`.
-- Icon app là `src/rentcity-icon.svg`.
-- Tài liệu backend cần làm nằm tại `docs/backend-requirements.md`.
+```bash
+cmd /c npm start -- --port 4174
+```
+
+## Quality Checks
+
+```bash
+cmd /c npm run typecheck
+cmd /c npm run lint
+cmd /c npm run build
+cmd /c npm run check
+```
+
+`npm run check` runs TypeScript, ESLint, and production build.
+
+## Routes
+
+- Web: `/web`
+- Mobile app shell: `/app`
+- Phone web app/PWA: `/web_app`
+- Admin console: `/admin`
+
+## Backend Notes
+
+- The app is frontend-only for now.
+- `VITE_API_BASE_URL` is defined in `.env.example`.
+- API handoff notes are in `docs/backend-requirements.md`.
+- The current service layer is intentionally isolated so backend calls can replace mock reads without rewriting UI screens.

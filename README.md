@@ -1,19 +1,28 @@
 # RentCity_Demo
 
-Frontend demo for RentCity, a rental housing product with separated experiences for web, mobile app shell, mobile web app/PWA, and internal admin.
+RentCity frontend for rental discovery, booking, tenant flows, owner workflows, phone web app/PWA, and internal admin operations.
 
 ## Source
 
-All frontend source code is inside:
+All frontend code is inside:
 
 ```text
 front-end/
 ```
 
-React/Vite module layout:
+Current stack:
+
+- React 19
+- Vite 6
+- TypeScript strict mode
+- React Router
+- ESLint flat config
+- Frontend-only mock service layer, ready to swap to real APIs later
+
+Main source layout:
 
 ```text
-front-end/src/main.jsx
+front-end/src/main.tsx
 front-end/src/app/
 front-end/src/api/
 front-end/src/services/
@@ -22,11 +31,12 @@ front-end/src/features/web/
 front-end/src/features/app/
 front-end/src/features/web-app/
 front-end/src/features/admin/
-front-end/src/data.js
-front-end/src/utils.js
+front-end/src/data.ts
+front-end/src/types.ts
+front-end/src/utils.ts
 ```
 
-## Run locally
+## Run Locally
 
 ```bash
 cd front-end
@@ -47,8 +57,20 @@ Main routes:
 - `/web_app` - phone web app/PWA
 - `/admin` - internal admin console
 
-## Notes
+## Quality Checks
 
-- This repository is frontend-only.
-- No backend API is enabled.
-- Backend requirements are documented in `front-end/docs/backend-requirements.md`.
+```bash
+cd front-end
+cmd /c npm run typecheck
+cmd /c npm run lint
+cmd /c npm run build
+cmd /c npm run check
+```
+
+## Backend Handoff
+
+This repository is frontend-only. Backend requirements are documented in:
+
+```text
+front-end/docs/backend-requirements.md
+```

@@ -1,6 +1,7 @@
-import { listingById, listings } from "../data.js";
+import { listingById, listings } from "../data";
+import type { Listing, ListingFilters } from "../types";
 
-export function filterListings(filters) {
+export function filterListings(filters: ListingFilters): Listing[] {
   const keyword = filters.keyword.trim().toLowerCase();
   return listings.filter((item) => {
     const districtOk = filters.district === "Tất cả" || item.district === filters.district;
@@ -17,8 +18,8 @@ export function filterListings(filters) {
 }
 
 export const listingsService = {
-  list: (filters) => filterListings(filters),
-  featured: () => listings.slice(0, 3),
-  getById: (id) => listingById(id),
-  saved: (ids) => listings.filter((item) => ids.includes(item.id))
+  list: (filters: ListingFilters): Listing[] => filterListings(filters),
+  featured: (): Listing[] => listings.slice(0, 3),
+  getById: (id?: string): Listing => listingById(id),
+  saved: (ids: string[]): Listing[] => listings.filter((item) => ids.includes(item.id))
 };

@@ -1,11 +1,21 @@
-import { assets } from "../../data.js";
-import { useRentCity } from "../../app/AppProvider.jsx";
-import { createBooking } from "../../services/bookings.service.js";
-import { listingsService } from "../../services/listings.service.js";
-import { money } from "../../utils.js";
-import { EmptyState, Footer, ListingCard, ListingTile, MapPanel, RouteButton, SearchForm, WebTopbar } from "../../components/ui.jsx";
+import type { FormEvent } from "react";
+import { assets } from "../../data";
+import { useRentCity } from "../../app/useRentCity";
+import { createBooking } from "../../services/bookings.service";
+import { listingsService } from "../../services/listings.service";
+import { money } from "../../utils";
+import { EmptyState, Footer, ListingCard, ListingTile, MapPanel, RouteButton, SearchForm, WebTopbar } from "../../components/ui";
+import type { NavigateTo, RoutedScreenProps } from "../../types";
 
-export function WebExperience({ route, navigate }) {
+interface NavigateProps {
+  navigate: NavigateTo;
+}
+
+interface ListingPageProps extends NavigateProps {
+  id?: string;
+}
+
+export function WebExperience({ route, navigate }: RoutedScreenProps) {
   const page = route.path || "home";
   let content;
   if (page === "search") content = <SearchPage navigate={navigate} />;
@@ -28,7 +38,7 @@ export function WebExperience({ route, navigate }) {
   );
 }
 
-function HomePage({ navigate }) {
+function HomePage({ navigate }: NavigateProps) {
   return (
     <main className="page">
       <section className="hero">
@@ -79,7 +89,7 @@ function HomePage({ navigate }) {
   );
 }
 
-function SearchPage({ navigate }) {
+function SearchPage({ navigate }: NavigateProps) {
   const { state } = useRentCity();
   const results = listingsService.list(state.filters);
   return (
@@ -101,7 +111,7 @@ function SearchPage({ navigate }) {
   );
 }
 
-function DetailPage({ id, navigate }) {
+function DetailPage({ id, navigate }: ListingPageProps) {
   const item = listingsService.getById(id);
   const { state, dispatch, notify } = useRentCity();
   return (
@@ -149,10 +159,10 @@ function DetailPage({ id, navigate }) {
   );
 }
 
-function BookingPage({ id, navigate }) {
+function BookingPage({ id, navigate }: ListingPageProps) {
   const item = listingsService.getById(id);
   const { dispatch, notify } = useRentCity();
-  function submit(event) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     dispatch({ type: "booking/add", payload: createBooking({ listingId: item.id, date: data.get("date"), time: data.get("time") }), meta: { listingTitle: item.title } });
@@ -191,7 +201,7 @@ function BookingPage({ id, navigate }) {
   );
 }
 
-function SavedPage({ navigate }) {
+function SavedPage({ navigate }: NavigateProps) {
   const { state } = useRentCity();
   const savedItems = listingsService.saved(state.saved);
   return <main className="page"><span className="eyebrow">Wishlist</span><h1 style={{ fontSize: 44 }}>Nhà đã lưu</h1><section className="section grid">{savedItems.length ? savedItems.map((item) => <ListingCard key={item.id} item={item} navigate={navigate} />) : <EmptyState title="Bạn chưa lưu nhà nào" body="Khi thấy nhà phù hợp, bấm lưu để so sánh sau." />}</section></main>;
@@ -199,9 +209,10 @@ function SavedPage({ navigate }) {
 
 function MessagesPage() {
   const { state, dispatch, notify } = useRentCity();
-  function submit(event) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const input = event.currentTarget.elements.message;
+    const input = event.currentTarget.elements.namedItem("message") as HTMLInputElement | null;
+    if (!input) return;
     const body = input.value.trim();
     if (!body) return;
     dispatch({ type: "message/add", payload: body });
@@ -240,17 +251,17 @@ function PaymentsPage() {
   );
 }
 
-function OwnerPage({ navigate }) {
+function OwnerPage({ navigate }: NavigateProps) {
   return <main className="page"><span className="eyebrow">Chủ nhà</span><h1 style={{ fontSize: 44 }}>Quản lý danh mục cho thuê</h1><section className="section stat-grid">{[["Nhà đang quản lý", "12", "8 tin đang hiển thị"], ["Lịch xem tuần này", "24", "84% xác nhận"], ["Doanh thu tháng", "128tr", "+18% so với tháng trước"], ["Cần xử lý", "6", "Hồ sơ và tin nhắn"]].map(([label, value, body]) => <div className="stat" key={label}><span>{label}</span><strong>{value}</strong><p className="subtle">{body}</p></div>)}</section><section className="section grid cols-2"><div className="card pad"><h3>Pipeline khách thuê</h3><div className="workflow" style={{ marginTop: 16 }}>{["Mới liên hệ", "Đặt lịch xem", "Đang thương lượng", "Chờ hợp đồng"].map((step, index) => <div className="workflow-step" key={step}><span className="num">{index + 1}</span><div><strong>{step}</strong><p className="subtle">{[8, 5, 3, 2][index]} khách</p></div></div>)}</div></div><div className="card pad"><h3>Công cụ chủ nhà đang bật</h3><p className="subtle" style={{ marginTop: 8 }}>Theo dõi lịch xem, phản hồi khách thuê, nhắc cọc và chuẩn bị hợp đồng cho nhà đang quản lý.</p><div className="actions" style={{ marginTop: 18 }}><RouteButton to="/web/messages" navigate={navigate}>Xem trao đổi</RouteButton><RouteButton className="btn secondary" to="/web/post" navigate={navigate}>Đăng tin mới</RouteButton></div></div></section></main>;
 }
 
-function PostPage({ navigate }) {
+function PostPage({ navigate }: NavigateProps) {
   const { notify } = useRentCity();
-  function submit(event) { event.preventDefault(); notify("Đã lưu tin nháp. Chuyển sang Owner Center."); navigate("/web/owner"); }
+  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); notify("Đã lưu tin nháp. Chuyển sang Owner Center."); navigate("/web/owner"); }
   return <main className="page"><span className="eyebrow">Đăng tin</span><h1 style={{ fontSize: 44 }}>Đăng nhà cho thuê</h1><form className="section card pad" onSubmit={submit}><div className="grid cols-2"><label className="field"><span>Tên nhà</span><input required placeholder="Ví dụ: Studio mới gần Crescent Mall" /></label><label className="field"><span>Giá thuê</span><input required placeholder="5.8tr/tháng" /></label><label className="field"><span>Quận</span><select><option>Quận 7</option><option>Bình Thạnh</option><option>Thủ Đức</option></select></label><label className="field"><span>Diện tích</span><input required placeholder="28m2" /></label></div><label className="field" style={{ marginTop: 14 }}><span>Mô tả</span><textarea placeholder="Nội thất, cọc, điện nước, lịch trống..." /></label><div className="actions" style={{ marginTop: 18 }}><button className="btn" type="submit">Lưu tin nháp</button><RouteButton className="btn secondary" to="/web/owner" navigate={navigate}>Quản lý tin</RouteButton></div></form></main>;
 }
 
-function AccountPage({ navigate }) {
+function AccountPage({ navigate }: NavigateProps) {
   const { state, dispatch, notify } = useRentCity();
   return <main className="page"><span className="eyebrow">Tài khoản</span><h1 style={{ fontSize: 44 }}>Thông tin cá nhân</h1><section className="section grid cols-2"><div className="card pad"><h3>Đăng nhập OTP</h3><label className="field" style={{ marginTop: 16 }}><span>Số điện thoại</span><input defaultValue="+84 912 345 678" /></label><div className="actions" style={{ marginTop: 18 }}><button className="btn" onClick={() => { dispatch({ type: "otp/send" }); notify("Đã gửi OTP demo."); }}>Gửi mã OTP</button><RouteButton className="btn secondary" to="/web/saved" navigate={navigate}>Xem nhà đã lưu</RouteButton></div></div><div className="card pad"><h3>Thông báo</h3><div className="grid" style={{ marginTop: 14 }}>{state.notifications.map((item) => <p className="card pad subtle" key={item}>{item}</p>)}</div></div></section></main>;
 }
