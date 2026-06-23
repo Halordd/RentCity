@@ -1,18 +1,23 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ok } from "../../common/api-response";
+import { CurrentUser } from "../../common/auth/current-user.decorator";
+import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
+import type { AuthenticatedUser } from "../../common/auth/auth.types";
+import { CreateContractDto } from "./dto/create-contract.dto";
 import { ContractsService } from "./contracts.service";
 
+@UseGuards(JwtAuthGuard)
 @Controller("contracts")
 export class ContractsController {
   constructor(private readonly contractsService: ContractsService) {}
 
   @Post()
-  create(@Body() body: Record<string, unknown>) {
-    return ok(this.contractsService.create(body));
+  async create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateContractDto) {
+    return ok(await this.contractsService.create(user, body));
   }
 
   @Get(":id")
-  detail(@Param("id") id: string) {
-    return ok(this.contractsService.detail(id));
+  async detail(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return ok(await this.contractsService.detail(user, id));
   }
 }

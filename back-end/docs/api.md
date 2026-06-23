@@ -6,74 +6,83 @@ Base URL for local development:
 http://localhost:4000
 ```
 
+Authenticated endpoints require:
+
+```text
+Authorization: Bearer <accessToken>
+```
+
+OTP verification returns the token. In non-production mode the OTP request response includes `devCode` for local testing only.
+
 ## Health
 
 - `GET /health`
 
 ## Auth
 
-- `POST /auth/otp/request`
-- `POST /auth/otp/verify`
+- `POST /auth/otp/request` - body: `phone`
+- `POST /auth/otp/verify` - body: `phone`, `code`
 - `POST /auth/logout`
-- `GET /me`
+- `GET /me` - authenticated
 
 ## Listings
 
-- `GET /listings`
-- `GET /listings/:id`
+- `GET /listings` - public search, published listings only
+- `GET /listings/:id` - public listing detail, published listings only
 
 ## Owner
 
-- `GET /owner/listings`
-- `POST /owner/listings`
-- `PATCH /owner/listings/:id`
-- `POST /owner/listings/:id/images`
-- `GET /owner/bookings`
-- `PATCH /owner/bookings/:id/confirm`
+- `GET /owner/listings` - owner/admin
+- `POST /owner/listings` - owner/admin
+- `PATCH /owner/listings/:id` - owner/admin
+- `POST /owner/listings/:id/images` - owner/admin
+- `GET /owner/bookings` - owner/admin
+- `PATCH /owner/bookings/:id/confirm` - owner/admin
 
 ## Bookings
 
 - `GET /listings/:id/availability`
-- `POST /bookings`
-- `PATCH /bookings/:id/reschedule`
-- `PATCH /bookings/:id/cancel`
+- `POST /bookings` - tenant login required
+- `PATCH /bookings/:id/reschedule` - booking tenant only
+- `PATCH /bookings/:id/cancel` - booking tenant only
 
 ## Saved Homes
 
-- `GET /me/saved-listings`
-- `POST /me/saved-listings/:listingId`
-- `DELETE /me/saved-listings/:listingId`
+- `GET /me/saved-listings` - authenticated
+- `POST /me/saved-listings/:listingId` - authenticated
+- `DELETE /me/saved-listings/:listingId` - authenticated
 
 ## Messages
 
-- `GET /conversations`
-- `GET /conversations/:id/messages`
-- `POST /conversations/:id/messages`
+- `GET /conversations` - authenticated
+- `POST /conversations` - authenticated, creates or reuses tenant/owner/listing thread
+- `GET /conversations/:id/messages` - participant only
+- `POST /conversations/:id/messages` - participant only
 
 ## Payments
 
-- `POST /payments/deposits`
-- `GET /payments/:id`
-- `POST /payments/webhook`
+- `POST /payments/deposits` - authenticated
+- `GET /payments/:id` - payment owner only
+- `POST /payments/webhook` - public provider callback placeholder
 
 ## Contracts
 
-- `POST /contracts`
-- `GET /contracts/:id`
+- `POST /contracts` - authenticated
+- `GET /contracts/:id` - contract user or listing owner
 
 ## Admin
 
-- `GET /admin/metrics`
-- `GET /admin/verifications`
-- `POST /admin/verifications/:id/approve`
-- `POST /admin/verifications/:id/request-more`
-- `GET /admin/disputes`
-- `PATCH /admin/disputes/:id`
-- `GET /admin/audit-logs`
-- `POST /admin/listings/:id/review`
+- `GET /admin/metrics` - admin only
+- `GET /admin/verifications` - admin only
+- `POST /admin/verifications/:id/approve` - admin only
+- `POST /admin/verifications/:id/request-more` - admin only
+- `GET /admin/disputes` - admin only
+- `PATCH /admin/disputes/:id` - admin only
+- `GET /admin/audit-logs` - admin only
+- `POST /admin/listings/:id/review` - admin only
 
 ## PWA And Notifications
 
-- `GET /me/app-state`
-- `PATCH /me/app-state`
-- `POST /notifications/push-subscriptions`
+- `GET /me/app-state` - authenticated
+- `PATCH /me/app-state` - authenticated
+- `POST /notifications/push-subscriptions` - authenticated

@@ -1,38 +1,49 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { UserRole } from "@prisma/client";
 import { ok } from "../../common/api-response";
+import { CurrentUser } from "../../common/auth/current-user.decorator";
+import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
+import { Roles } from "../../common/auth/roles.decorator";
+import { RolesGuard } from "../../common/auth/roles.guard";
+import type { AuthenticatedUser } from "../../common/auth/auth.types";
+import { AddListingImageDto } from "./dto/add-listing-image.dto";
+import { CreateOwnerListingDto } from "./dto/create-owner-listing.dto";
+import { UpdateOwnerListingDto } from "./dto/update-owner-listing.dto";
 import { OwnerService } from "./owner.service";
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.OWNER, UserRole.ADMIN)
 @Controller("owner")
 export class OwnerController {
   constructor(private readonly ownerService: OwnerService) {}
 
   @Get("listings")
-  listings() {
-    return ok(this.ownerService.listings());
+  async listings(@CurrentUser() user: AuthenticatedUser) {
+    return ok(await this.ownerService.listings(user));
   }
 
   @Post("listings")
-  createListing(@Body() body: Record<string, unknown>) {
-    return ok(this.ownerService.createListing(body));
+  async createListing(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateOwnerListingDto) {
+    return ok(await this.ownerService.createListing(user, body));
   }
 
   @Patch("listings/:id")
-  updateListing(@Param("id") id: string, @Body() body: Record<string, unknown>) {
-    return ok(this.ownerService.updateListing(id, body));
+  async updateListing(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string, @Body() body: UpdateOwnerListingDto) {
+    return ok(await this.ownerService.updateListing(user, id, body));
   }
 
   @Post("listings/:id/images")
-  addImage(@Param("id") id: string, @Body() body: Record<string, unknown>) {
-    return ok(this.ownerService.addImage(id, body));
+  async addImage(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string, @Body() body: AddListingImageDto) {
+    return ok(await this.ownerService.addImage(user, id, body));
   }
 
   @Get("bookings")
-  bookings() {
-    return ok(this.ownerService.bookings());
+  async bookings(@CurrentUser() user: AuthenticatedUser) {
+    return ok(await this.ownerService.bookings(user));
   }
 
   @Patch("bookings/:id/confirm")
-  confirmBooking(@Param("id") id: string) {
-    return ok(this.ownerService.confirmBooking(id));
+  async confirmBooking(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return ok(await this.ownerService.confirmBooking(user, id));
   }
 }

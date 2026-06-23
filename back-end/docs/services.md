@@ -21,100 +21,95 @@ This document describes the backend services/modules and what each one is respon
 
 ## Auth Service
 
-Current scaffold:
+Current implementation:
 
 - `POST /auth/otp/request`
 - `POST /auth/otp/verify`
 - `POST /auth/logout`
 - `GET /me`
+- Stores OTP challenges with hashed codes and expiry.
+- Issues JWT access tokens.
+- Provides reusable JWT and role guards.
 
-Production work needed:
+External adapters still needed:
 
-- Store OTP challenge with TTL in Redis or database.
-- Rate-limit phone number/IP.
-- Issue JWT or secure session.
-- Add refresh token/session revocation.
-- Add guards and role decorators.
+- SMS OTP delivery provider.
+- Rate limit store and refresh-token revocation if long sessions are required.
 
 ## Users Service
 
-Current scaffold:
+Current implementation:
 
 - `GET /users/me/profile`
+- `PATCH /users/me/profile`
+- Reads and updates authenticated user profile fields.
 
-Production work needed:
+External adapters still needed:
 
-- Tenant profile.
-- Owner profile.
-- Admin user profile.
-- Role and status management.
-- Verification state mapping.
+- Avatar/document storage if profiles later include uploads.
 
 ## Listings Service
 
-Current scaffold:
+Current implementation:
 
 - `GET /listings`
 - `GET /listings/:id`
+- Public search for published listings.
+- Filters by district, query text, price, bedrooms, pet support, and amenities.
+- Returns listing images and owner summary.
 
-Production work needed:
+External adapters still needed:
 
-- Search/filter by district, price, area, amenities, availability.
-- Persist listing data with Prisma.
-- Add image handling.
-- Add geocoding fields.
-- Add listing quality status and admin review status.
+- Real image upload/storage.
+- Geocoding provider for map coordinates.
 
 ## Bookings Service
 
-Current scaffold:
+Current implementation:
 
 - `GET /listings/:id/availability`
 - `POST /bookings`
 - `PATCH /bookings/:id/reschedule`
 - `PATCH /bookings/:id/cancel`
+- Generates near-term viewing slots.
+- Blocks already booked slots.
+- Enforces tenant ownership for reschedule/cancel.
 
-Production work needed:
+External adapters still needed:
 
-- Prevent duplicate/overlapping booking slots.
-- Validate tenant identity.
-- Notify owner.
-- Track booking status transitions.
-- Add no-show/completed states.
+- Calendar integration and reminder queue.
 
 ## Saved Service
 
-Current scaffold:
+Current implementation:
 
 - `GET /me/saved-listings`
 - `POST /me/saved-listings/:listingId`
 - `DELETE /me/saved-listings/:listingId`
-
-Production work needed:
-
-- Persist saved listings per authenticated user.
-- Return full listing cards for frontend compare views.
-- Enforce unique user/listing pair.
+- Persists saved listings by authenticated user.
+- Enforces unique user/listing pairs.
+- Returns listing card data for frontend compare views.
 
 ## Messages Service
 
-Current scaffold:
+Current implementation:
 
 - `GET /conversations`
+- `POST /conversations`
 - `GET /conversations/:id/messages`
 - `POST /conversations/:id/messages`
+- Stores conversations and messages.
+- Enforces tenant/owner participant access.
+- Reuses an existing listing conversation when available.
 
-Production work needed:
+External adapters still needed:
 
-- Store conversation participants.
-- Add unread count.
-- Add read receipts.
-- Add attachment policy.
-- Decide polling first or WebSocket gateway.
+- Realtime WebSocket gateway or polling strategy.
+- Attachment storage policy.
 
 ## Owner Service
 
-Current scaffold:
+Current implementation:
 
 - `GET /owner/listings`
 - `POST /owner/listings`
@@ -122,18 +117,18 @@ Current scaffold:
 - `POST /owner/listings/:id/images`
 - `GET /owner/bookings`
 - `PATCH /owner/bookings/:id/confirm`
-
-Production work needed:
-
-- Owner-only guards.
+- Owner/admin role guard.
 - Listing ownership checks.
-- Image upload workflow.
-- Booking confirmation rules.
-- Owner dashboard metrics.
+- Owner booking queue and booking confirmation.
+
+External adapters still needed:
+
+- Direct file upload flow for listing images.
+- Owner notification delivery.
 
 ## Admin Service
 
-Current scaffold:
+Current implementation:
 
 - `GET /admin/metrics`
 - `GET /admin/verifications`
@@ -143,27 +138,32 @@ Current scaffold:
 - `GET /admin/disputes`
 - `PATCH /admin/disputes/:id`
 - `GET /admin/audit-logs`
+- Admin-only guard.
+- Verification review flow.
+- Listing moderation flow.
+- Dispute status flow.
+- Audit logs for sensitive moderation actions.
 
-Production work needed:
+External adapters still needed:
 
-- Admin-only guards.
-- RBAC by admin role.
-- Audit log on sensitive actions.
-- Verification document privacy.
-- Listing moderation workflow.
-- Dispute state machine.
+- Private document storage and signed review URLs.
+- More granular admin permissions if the team grows.
 
 ## Payments Service
 
-Current scaffold:
+Current implementation:
 
 - `POST /payments/deposits`
 - `GET /payments/:id`
 - `POST /payments/webhook`
+- Creates pending deposit records.
+- Restricts payment detail to the paying user.
+- Updates payment status by provider reference.
 
-Production work needed:
+External adapters still needed:
 
 - Provider integration.
+- Signed webhook verification.
 - Idempotent webhook handling.
 - Payment status reconciliation.
 - Receipt storage.
@@ -171,29 +171,31 @@ Production work needed:
 
 ## Contracts Service
 
-Current scaffold:
+Current implementation:
 
 - `POST /contracts`
 - `GET /contracts/:id`
+- Creates draft contracts linked to listing and user.
+- Allows contract lookup by contract user or listing owner.
 
-Production work needed:
+External adapters still needed:
 
-- Generate draft contract.
-- Store contract PDF.
-- Track signature state.
-- Link contract to booking/payment/listing.
+- PDF generation.
+- Digital signature flow.
+- Contract storage.
 
 ## Notifications Service
 
-Current scaffold:
+Current implementation:
 
 - `GET /me/app-state`
 - `PATCH /me/app-state`
 - `POST /notifications/push-subscriptions`
+- Stores app state per authenticated user.
+- Stores web push subscription payloads.
 
-Production work needed:
+External adapters still needed:
 
-- Push subscription storage.
 - Booking reminders.
 - Owner response reminders.
 - Payment/contract notifications.
@@ -201,10 +203,13 @@ Production work needed:
 
 ## Infrastructure Services
 
-Current scaffold:
+Current implementation:
 
 - PostgreSQL through Prisma.
 - Redis container available through Docker Compose.
+- Environment validation.
+- Dockerfile for runtime image.
+- Prisma migration and deployment command.
 
 Production work needed:
 

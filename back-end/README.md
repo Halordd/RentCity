@@ -16,6 +16,7 @@ Backend scaffold for the RentCity rental platform. This backend is organized as 
 - Validation: Nest validation pipe with `class-validator` ready
 - Security baseline: CORS + Fastify Helmet
 - Dev infra: Docker Compose for PostgreSQL and Redis
+- Deployment: Dockerfile, Prisma migrations, env validation
 
 ## Backend Architecture
 
@@ -38,6 +39,7 @@ back-end/
     main.ts
     app.module.ts
     common/
+    config/
     database/
     modules/
       admin/
@@ -62,6 +64,7 @@ cmd /c npm install
 cmd /c npm run db:up
 cmd /c npm run prisma:generate
 cmd /c npm run prisma:migrate
+cmd /c npm run seed
 cmd /c npm run dev
 ```
 
@@ -69,7 +72,9 @@ Database tools:
 
 ```bash
 cmd /c npm run db:up
+cmd /c npm run prisma:validate
 cmd /c npm run prisma:migrate
+cmd /c npm run prisma:deploy
 cmd /c npm run db:down
 ```
 
@@ -79,10 +84,13 @@ Copy `.env.example` to `.env`.
 
 ```text
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/rentcity?schema=public"
+NODE_ENV="development"
 JWT_SECRET="change-me"
 PORT=4000
 FRONTEND_ORIGINS="http://localhost:4173,http://localhost:4174"
 ```
+
+Production deployment notes are in `docs/deployment.md`.
 
 ## MVP Modules
 
@@ -127,4 +135,4 @@ API responses should keep stable fields:
 
 ## Notes
 
-This is a scaffold. Authentication, upload storage, permissions, payment providers, and realtime transport still need production implementation.
+This backend now has a production-ready service foundation: guarded routes, DTO validation, Prisma data access, env validation, Docker build, migration path, and seed data. Real external adapters are still needed for SMS OTP delivery, file storage, payment verification, push notifications, and observability before handling real transactions.

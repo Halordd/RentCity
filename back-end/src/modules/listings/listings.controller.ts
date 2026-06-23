@@ -1,18 +1,19 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ok } from "../../common/api-response";
 import { ListingsService } from "./listings.service";
+import { SearchListingsDto } from "./dto/search-listings.dto";
 
 @Controller("listings")
 export class ListingsController {
   constructor(private readonly listingsService: ListingsService) {}
 
   @Get()
-  list(@Query() query: Record<string, string>) {
-    return ok(this.listingsService.search(query));
+  async list(@Query() query: SearchListingsDto) {
+    return ok(await this.listingsService.search(query));
   }
 
   @Get(":id")
-  detail(@Param("id") id: string) {
-    return ok(this.listingsService.detail(id));
+  async detail(@Param("id") id: string) {
+    return ok(await this.listingsService.detail(id));
   }
 }

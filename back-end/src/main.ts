@@ -11,6 +11,7 @@ async function bootstrap() {
   const origins = config.get<string>("FRONTEND_ORIGINS", "").split(",").map((origin) => origin.trim()).filter(Boolean);
 
   await app.register(fastifyHelmet);
+  app.enableShutdownHooks();
   app.enableCors({
     origin: origins.length ? origins : true,
     credentials: true
@@ -24,7 +25,7 @@ async function bootstrap() {
   );
 
   const port = config.get<number>("PORT", 4000);
-  await app.listen(port);
+  await app.listen(port, "0.0.0.0");
 }
 
 void bootstrap();

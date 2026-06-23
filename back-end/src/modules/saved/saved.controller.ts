@@ -1,23 +1,27 @@
-import { Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ok } from "../../common/api-response";
+import { CurrentUser } from "../../common/auth/current-user.decorator";
+import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
+import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { SavedService } from "./saved.service";
 
+@UseGuards(JwtAuthGuard)
 @Controller("me/saved-listings")
 export class SavedController {
   constructor(private readonly savedService: SavedService) {}
 
   @Get()
-  list() {
-    return ok(this.savedService.list());
+  async list(@CurrentUser() user: AuthenticatedUser) {
+    return ok(await this.savedService.list(user.id));
   }
 
   @Post(":listingId")
-  save(@Param("listingId") listingId: string) {
-    return ok(this.savedService.save(listingId));
+  async save(@CurrentUser() user: AuthenticatedUser, @Param("listingId") listingId: string) {
+    return ok(await this.savedService.save(user.id, listingId));
   }
 
   @Delete(":listingId")
-  remove(@Param("listingId") listingId: string) {
-    return ok(this.savedService.remove(listingId));
+  async remove(@CurrentUser() user: AuthenticatedUser, @Param("listingId") listingId: string) {
+    return ok(await this.savedService.remove(user.id, listingId));
   }
 }

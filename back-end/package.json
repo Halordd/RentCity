@@ -14,8 +14,11 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",
@@ -24,6 +27,7 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.27",
     "@nestjs/jwt": "^11.0.2",
+    "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-fastify": "^11.1.27",
     "@prisma/client": "^6.1.0",

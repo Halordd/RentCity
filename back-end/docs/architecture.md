@@ -97,8 +97,10 @@ src/
   main.ts
   app.module.ts
   common/
-    api-response.ts
-    current-user.ts
+    auth/
+    dto/
+  config/
+    env.validation.ts
   database/
     database.module.ts
     prisma.service.ts
@@ -124,16 +126,10 @@ module-name/
   module-name.module.ts
   module-name.controller.ts
   module-name.service.ts
-```
-
-DTO folders can be added per module when request validation becomes more detailed:
-
-```text
-module-name/
   dto/
-    create-thing.dto.ts
-    update-thing.dto.ts
 ```
+
+DTO folders are used for request validation and API boundary typing.
 
 ## Data Model Groups
 
@@ -162,10 +158,12 @@ The scaffold is prepared for these integrations but does not implement them yet:
 
 ## Production Rules
 
+- Validate required environment variables on boot.
 - Never put business logic directly in controllers.
 - Keep module service boundaries clear.
 - Keep auth, owner, and admin permissions separate.
 - Validate request DTOs before touching services.
+- Use Prisma migrations for schema changes.
 - Keep private files such as identity documents behind signed URLs or protected routes.
 - Add audit logs for sensitive admin actions.
 - Do not connect payment or upload providers without explicit validation and failure handling.
