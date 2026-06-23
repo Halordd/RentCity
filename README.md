@@ -1,26 +1,30 @@
 # RentCity Backend
 
-This branch is reserved for the RentCity backend implementation.
+This is the backend branch for RentCity. It contains the API scaffold, database schema, module boundaries, and handoff notes needed to connect the frontend to a real server.
 
-The frontend source is not kept in this branch. Frontend work lives in:
+Frontend work lives in `developer/front-end`. This branch should stay backend-only.
 
-```text
-developer/front-end
-```
-
-Backend work should start in:
+## Source
 
 ```text
 back-end/
 ```
 
-## Branch Purpose
+## Current Backend Stack
 
-- `developer/back-end`: backend API, database, auth, storage, realtime, payments, and admin services.
-- `developer/front-end`: React/Vite frontend.
-- `develop`: integration branch for active product work.
-- `main`: stable project snapshot.
+- NestJS
+- Prisma
+- PostgreSQL
+- TypeScript
+- JWT-ready auth module
+- Modular API structure for listings, bookings, saved homes, messages, owner tools, admin tools, payments, contracts, and notifications
 
-## Backend Scope
+## Start Here
 
-See `back-end/README.md` for the API handoff and MVP checklist.
+Read:
+
+```text
+back-end/README.md
+```
+
+The backend is scaffolded and dependencies are locked with `package-lock.json`. Run setup inside `back-end/` when ready.
