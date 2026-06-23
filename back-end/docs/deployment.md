@@ -26,6 +26,12 @@ cmd /c npm run prisma:generate
 cmd /c npm run build
 ```
 
+Before merging or deploying backend changes, run:
+
+```bash
+cmd /c npm run ci
+```
+
 ## Database
 
 Use Prisma migrations in production:

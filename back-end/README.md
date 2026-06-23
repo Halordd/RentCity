@@ -68,6 +68,12 @@ cmd /c npm run seed
 cmd /c npm run dev
 ```
 
+Quality gate:
+
+```bash
+cmd /c npm run ci
+```
+
 Database tools:
 
 ```bash

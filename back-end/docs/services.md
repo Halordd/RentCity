@@ -212,6 +212,8 @@ Current implementation:
 - Environment validation.
 - Dockerfile for runtime image.
 - Prisma migration and deployment command.
+- Node built-in unit tests for key production boundaries.
+- GitHub Actions backend quality gate.
 
 Infrastructure adapters still needed:
 
