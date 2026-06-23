@@ -1,13 +1,19 @@
-# RentCity_Demo
+# RentCity
 
 RentCity frontend for rental discovery, booking, tenant flows, owner workflows, phone web app/PWA, and internal admin operations.
 
 ## Source
 
-All frontend code is inside:
+Current frontend code is inside:
 
 ```text
 front-end/
+```
+
+Backend handoff workspace:
+
+```text
+back-end/
 ```
 
 Current stack:
@@ -67,10 +73,21 @@ cmd /c npm run build
 cmd /c npm run check
 ```
 
+## Branch Model
+
+- `main`: stable project snapshot.
+- `develop`: integration branch for active product work.
+- `developer/front-end`: frontend implementation branch.
+- `developer/back-end`: backend implementation branch.
+- `stagging`: staging branch requested for release checks.
+- `release/v0.1.0`: first tagged release branch.
+
+Note: Git cannot have both a branch named `developer` and child-like branch names such as `developer/front-end`. The slash is branch grouping, not a real parent branch.
+
 ## Backend Handoff
 
 This repository is frontend-only. Backend requirements are documented in:
 
 ```text
-front-end/docs/backend-requirements.md
+back-end/README.md
 ```
