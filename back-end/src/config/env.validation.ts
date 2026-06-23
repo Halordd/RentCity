@@ -6,6 +6,8 @@ type ValidatedEnv = {
   PORT: number;
   FRONTEND_ORIGINS: string;
   OTP_TTL_SECONDS: number;
+  OTP_REQUEST_LIMIT_PER_HOUR: number;
+  PAYMENT_WEBHOOK_SECRET?: string;
   UPLOAD_PUBLIC_BASE_URL?: string;
   REDIS_URL?: string;
   NODE_ENV?: string;
@@ -41,6 +43,16 @@ function parseSeconds(value: string): number {
   return seconds;
 }
 
+function parsePositiveInteger(value: string, key: string): number {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${key} must be a positive integer.`);
+  }
+
+  return parsed;
+}
+
 function assertUrl(value: string, key: string): void {
   try {
     new URL(value);
@@ -68,6 +80,10 @@ export function validateEnv(env: Env): ValidatedEnv {
     throw new Error("JWT_SECRET must be changed before running in production.");
   }
 
+  if (nodeEnv === "production" && !env.PAYMENT_WEBHOOK_SECRET?.trim()) {
+    throw new Error("PAYMENT_WEBHOOK_SECRET is required in production.");
+  }
+
   if (frontendOrigins) {
     assertOrigins(frontendOrigins);
   }
@@ -87,6 +103,8 @@ export function validateEnv(env: Env): ValidatedEnv {
     PORT: parsePort(env.PORT?.trim() || "4000"),
     FRONTEND_ORIGINS: frontendOrigins,
     OTP_TTL_SECONDS: parseSeconds(env.OTP_TTL_SECONDS?.trim() || "300"),
+    OTP_REQUEST_LIMIT_PER_HOUR: parsePositiveInteger(env.OTP_REQUEST_LIMIT_PER_HOUR?.trim() || "5", "OTP_REQUEST_LIMIT_PER_HOUR"),
+    PAYMENT_WEBHOOK_SECRET: env.PAYMENT_WEBHOOK_SECRET?.trim(),
     UPLOAD_PUBLIC_BASE_URL: env.UPLOAD_PUBLIC_BASE_URL?.trim(),
     REDIS_URL: env.REDIS_URL?.trim(),
     NODE_ENV: nodeEnv

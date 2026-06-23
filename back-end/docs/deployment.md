@@ -12,6 +12,8 @@ JWT_EXPIRES_IN=7d
 PORT=4000
 FRONTEND_ORIGINS=https://rentcity.vn,https://app.rentcity.vn
 OTP_TTL_SECONDS=300
+OTP_REQUEST_LIMIT_PER_HOUR=5
+PAYMENT_WEBHOOK_SECRET=replace-with-payment-webhook-secret
 UPLOAD_PUBLIC_BASE_URL=https://cdn.rentcity.vn/uploads
 REDIS_URL=redis://HOST:6379
 ```
@@ -55,8 +57,10 @@ docker run --env-file .env rentcity-backend npx prisma migrate deploy
 
 - Set `NODE_ENV=production`.
 - Rotate `JWT_SECRET` away from local examples.
+- Set `PAYMENT_WEBHOOK_SECRET` and verify provider callbacks with `x-rentcity-signature`.
 - Run `npm run prisma:deploy`.
 - Confirm `/health` responds after deploy.
+- Confirm `/health/ready` can reach the production database.
 - Configure frontend apps with the deployed API base URL.
 - Configure SMS, storage, payment, email, and push adapters before accepting real transactions.
 

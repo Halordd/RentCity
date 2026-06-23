@@ -6,7 +6,7 @@ This document describes the backend services/modules and what each one is respon
 
 | Module | Controller | Service | Responsibility |
 | --- | --- | --- | --- |
-| `health` | `HealthController` | none | Health check for deployment/monitoring |
+| `health` | `HealthController` | `PrismaService` | Liveness and database readiness checks |
 | `auth` | `AuthController` | `AuthService` | OTP request/verify, logout, current user boundary |
 | `users` | `UsersController` | `UsersService` | Tenant/owner/admin profile data |
 | `listings` | `ListingsController` | `ListingsService` | Public listing search and listing detail |
@@ -28,6 +28,7 @@ Current implementation:
 - `POST /auth/logout`
 - `GET /me`
 - Stores OTP challenges with hashed codes and expiry.
+- Limits OTP request volume per phone number.
 - Issues JWT access tokens.
 - Provides reusable JWT and role guards.
 
@@ -159,6 +160,7 @@ Current implementation:
 - Creates pending deposit records.
 - Restricts payment detail to the paying user.
 - Updates payment status by provider reference.
+- Requires HMAC webhook signing when `PAYMENT_WEBHOOK_SECRET` is configured.
 
 External adapters still needed:
 
@@ -211,7 +213,7 @@ Current implementation:
 - Dockerfile for runtime image.
 - Prisma migration and deployment command.
 
-Production work needed:
+Infrastructure adapters still needed:
 
 - Redis for OTP TTL, rate limits, queues, and realtime fanout.
 - Object storage for listing images, verification documents, receipts, and contracts.

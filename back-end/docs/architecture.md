@@ -147,7 +147,7 @@ Prisma models are grouped around:
 
 ## External Services To Add Later
 
-The scaffold is prepared for these integrations but does not implement them yet:
+The service is prepared for these integrations but does not include provider-specific adapters yet:
 
 - SMS/OTP provider: Twilio, Zalo ZNS, Viettel, FPT, or similar.
 - Object storage: S3-compatible storage, Cloudinary, or Firebase Storage.

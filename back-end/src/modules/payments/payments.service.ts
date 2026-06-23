@@ -1,12 +1,19 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, UnauthorizedException, NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { PaymentStatus, UserRole } from "@prisma/client";
+import { Buffer } from "node:buffer";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { PrismaService } from "../../database/prisma.service";
 import { CreateDepositDto } from "./dto/create-deposit.dto";
+import { PaymentWebhookDto } from "./dto/payment-webhook.dto";
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService
+  ) {}
 
   async createDeposit(user: AuthenticatedUser, payload: CreateDepositDto) {
     const listing = await this.prisma.listing.findUnique({ where: { id: payload.listingId } });
@@ -18,6 +25,7 @@ export class PaymentsService {
         listingId: payload.listingId,
         amount: payload.amount,
         provider: payload.provider,
+        reference: this.createPaymentReference(),
         status: PaymentStatus.PENDING
       }
     });
@@ -35,24 +43,50 @@ export class PaymentsService {
     return payment;
   }
 
-  async webhook(payload: Record<string, unknown>) {
-    const reference = typeof payload.reference === "string" ? payload.reference : undefined;
-    const status = typeof payload.status === "string" ? payload.status : undefined;
+  async webhook(payload: PaymentWebhookDto, signature?: string) {
+    this.assertWebhookSignature(payload, signature);
 
-    if (reference && status) {
-      await this.prisma.payment.updateMany({
-        where: { reference },
-        data: { status: this.mapProviderStatus(status) }
-      });
-    }
+    const updated = await this.prisma.payment.updateMany({
+      where: { reference: payload.reference },
+      data: {
+        status: payload.status,
+        provider: payload.provider
+      }
+    });
 
-    return { received: true, payload };
+    return {
+      received: true,
+      reference: payload.reference,
+      status: payload.status,
+      updated: updated.count
+    };
   }
 
-  private mapProviderStatus(status: string): PaymentStatus {
-    const normalized = status.toLowerCase();
-    if (["paid", "success", "succeeded"].includes(normalized)) return PaymentStatus.PAID;
-    if (["failed", "cancelled", "canceled"].includes(normalized)) return PaymentStatus.FAILED;
-    return PaymentStatus.PROCESSING;
+  private createPaymentReference(): string {
+    return `rc_${Date.now()}_${randomUUID().slice(0, 8)}`;
+  }
+
+  private assertWebhookSignature(payload: PaymentWebhookDto, signature?: string): void {
+    const secret = this.config.get<string>("PAYMENT_WEBHOOK_SECRET");
+    if (!secret) return;
+
+    const expected = createHmac("sha256", secret).update(this.webhookSigningPayload(payload)).digest("hex");
+    const received = signature?.replace(/^sha256=/, "");
+
+    if (!received || !this.safeEqual(expected, received)) {
+      throw new UnauthorizedException("Invalid payment webhook signature");
+    }
+  }
+
+  private webhookSigningPayload(payload: PaymentWebhookDto): string {
+    return [payload.reference, payload.status, payload.amount ?? "", payload.eventId ?? ""].join(".");
+  }
+
+  private safeEqual(expected: string, received: string): boolean {
+    const expectedBuffer = Buffer.from(expected, "hex");
+    const receivedBuffer = Buffer.from(received, "hex");
+
+    if (expectedBuffer.length !== receivedBuffer.length) return false;
+    return timingSafeEqual(expectedBuffer, receivedBuffer);
   }
 }

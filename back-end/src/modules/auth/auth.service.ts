@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { UserRole } from "@prisma/client";
@@ -16,6 +16,18 @@ export class AuthService {
 
   async requestOtp(phone: string) {
     const ttlSeconds = this.config.get<number>("OTP_TTL_SECONDS", 300);
+    const hourlyLimit = this.config.get<number>("OTP_REQUEST_LIMIT_PER_HOUR", 5);
+    const recentRequests = await this.prisma.otpChallenge.count({
+      where: {
+        phone,
+        createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) }
+      }
+    });
+
+    if (recentRequests >= hourlyLimit) {
+      throw new HttpException("OTP request limit exceeded. Please try again later.", HttpStatus.TOO_MANY_REQUESTS);
+    }
+
     const code = randomInt(100000, 999999).toString();
     const codeHash = await bcrypt.hash(code, 10);
 

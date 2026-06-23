@@ -1,6 +1,6 @@
 # RentCity Backend
 
-Backend scaffold for the RentCity rental platform. This backend is organized as a modular NestJS application, where each business area has its own module, controller, and service.
+Backend for the RentCity rental platform. This service is organized as a modular NestJS application, where each business area has its own module, controller, DTOs, and service.
 
 ## Stack
 
@@ -96,11 +96,11 @@ Production deployment notes are in `docs/deployment.md`.
 
 - Auth: OTP request/verify, logout, current user.
 - Users: tenant, owner, admin role boundaries.
-- Listings: search, detail, owner CRUD, image placeholder, admin review.
+- Listings: search, detail, owner CRUD, image metadata, admin review.
 - Bookings: availability, create, reschedule, cancel, owner confirm.
 - Saved homes: save, unsave, list saved homes.
 - Messages: conversations and basic message creation.
-- Payments: deposit request, payment lookup, webhook placeholder.
+- Payments: deposit request, payment lookup, signed webhook boundary.
 - Contracts: draft contract creation and lookup.
 - Owner: portfolio, booking queue, listing management.
 - Admin: metrics, verification review, disputes, audit logs, access boundary.

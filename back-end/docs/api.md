@@ -17,6 +17,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 ## Health
 
 - `GET /health`
+- `GET /health/ready`
 
 ## Auth
 
@@ -63,7 +64,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 
 - `POST /payments/deposits` - authenticated
 - `GET /payments/:id` - payment owner only
-- `POST /payments/webhook` - public provider callback placeholder
+- `POST /payments/webhook` - provider callback, signed with `x-rentcity-signature` in production
 
 ## Contracts
 
