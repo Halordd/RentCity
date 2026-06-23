@@ -1,77 +1,179 @@
-# RentCity
+# RentCity Frontend
 
-RentCity là nền tảng tìm trọ, thuê nhà và quản lý nhà cho thuê. Sản phẩm hướng tới việc làm cho quá trình thuê nhà minh bạch hơn: người thuê xem được thông tin rõ ràng, chủ nhà quản lý được khách và lịch hẹn, còn đội vận hành có công cụ kiểm duyệt riêng.
+Đây là nhánh frontend của RentCity. README này dành cho người phát triển giao diện và khác với README ở `main`, nơi dùng để giới thiệu tổng quan sản phẩm.
 
-## Mục Đích
+## Vai Trò Frontend
 
-RentCity tập trung giải quyết ba vấn đề chính:
+Frontend mô phỏng đầy đủ các bề mặt chính của RentCity trước khi nối backend thật:
 
-- Người thuê cần tìm được nhà thật, giá thật, ảnh thật, vị trí rõ và còn lịch xem.
-- Chủ nhà cần quản lý tin đăng, khách quan tâm, lịch xem, thương lượng, cọc và hợp đồng.
-- Đội RentCity cần kiểm duyệt tin, xác minh chủ nhà, theo dõi chất lượng và xử lý các tình huống phát sinh.
-
-Mục tiêu cuối cùng là gom hành trình thuê nhà vào một luồng liền mạch: tìm nhà, xem chi tiết, lưu nhà, đặt lịch, nhắn tin, đặt cọc và tiến tới hợp đồng.
-
-## Người Dùng Chính
-
-- Người thuê: tìm trọ, thuê căn hộ, lưu nhà, đặt lịch xem, nhắn tin và theo dõi lịch hẹn.
-- Chủ nhà: đăng tin, quản lý nhà cho thuê, phản hồi khách, theo dõi lịch xem và xử lý cọc/hợp đồng.
-- Admin RentCity: xác minh chủ nhà, duyệt tin, kiểm tra chất lượng, xử lý khiếu nại và quản lý vận hành.
-
-## Cách RentCity Hoạt Động
-
-RentCity được chia thành các bề mặt sử dụng riêng:
-
-- Web: website desktop cho người thuê tìm kiếm, xem chi tiết và đặt lịch.
+- Web: website desktop cho người thuê tìm kiếm, xem chi tiết nhà và đặt lịch.
 - App: giao diện mobile app cho người thuê sử dụng thường xuyên.
-- Web app: bản chạy trên trình duyệt điện thoại/PWA cho người không cài app.
-- Admin: hệ thống nội bộ cho đội RentCity, tách riêng với phần quản lý nhà thông thường.
+- Web app: bản chạy trên trình duyệt điện thoại/PWA.
+- Admin: back-office nội bộ cho RentCity, tách riêng với phần quản lý nhà của chủ nhà.
 
-Hiện tại dự án là frontend, mô phỏng đầy đủ giao diện và luồng thao tác chính. Dữ liệu đang là mock/local state để có thể trải nghiệm sản phẩm trước khi nối backend thật.
+Ứng dụng hiện dùng mock data và `localStorage` để test luồng thao tác. Khi backend sẵn sàng, thay service mock bằng API call mà không cần viết lại UI.
 
-## Workflow
+## Stack
 
-```mermaid
-flowchart TD
-    A["Người thuê cần tìm nhà"] --> B["Mở Web / App / Web app"]
-    B --> C["Tìm kiếm theo khu vực, giá, diện tích, tiện ích"]
-    C --> D["Xem chi tiết nhà: ảnh thật, giá, phí, mô tả, vị trí"]
-    D --> E{"Phù hợp nhu cầu?"}
-    E -->|Chưa| C
-    E -->|Có| F["Lưu nhà hoặc so sánh"]
-    F --> G["Đặt lịch xem nhà"]
-    G --> H["Nhắn tin / thương lượng với chủ nhà"]
-    H --> I["Đặt cọc"]
-    I --> J["Tiến tới hợp đồng thuê"]
+- React 19
+- Vite 6
+- TypeScript strict mode
+- React Router
+- ESLint flat config
+- CSS thuần trong `src/styles.css`
+- Mock service layer trong `src/services/`
 
-    K["Chủ nhà đăng tin"] --> L["Thêm ảnh, giá, phí, tiện ích, lịch trống"]
-    L --> M["Gửi duyệt tin"]
-    M --> N["Admin xác minh chủ nhà và kiểm tra tin đăng"]
-    N --> O{"Tin hợp lệ?"}
-    O -->|Cần bổ sung| P["Yêu cầu chủ nhà chỉnh sửa"]
-    P --> L
-    O -->|Hợp lệ| Q["Tin được hiển thị cho người thuê"]
-    Q --> C
+## Cấu Trúc Source
 
-    G --> R["Chủ nhà nhận yêu cầu xem"]
-    R --> S{"Chủ nhà xác nhận?"}
-    S -->|Đổi lịch| T["Đề xuất lịch khác"]
-    T --> G
-    S -->|Xác nhận| U["Lịch xem được ghi nhận"]
-    U --> H
-
-    V["Admin vận hành"] --> N
-    V --> W["Theo dõi khiếu nại, thanh toán, audit log"]
-    V --> X["Cấu hình nhắc lịch, nhắc phản hồi, chăm sóc khách thuê"]
+```text
+front-end/
+  index.html
+  package.json
+  tsconfig.json
+  eslint.config.js
+  public/.rentcity-assets/       Ảnh nhà thật dùng cho giao diện demo
+  docs/backend-requirements.md   Ghi chú API cần backend triển khai
+  src/
+    main.tsx                     React entrypoint
+    styles.css                   Toàn bộ style chính
+    data.ts                      Mock listings, messages, admin rows
+    types.ts                     Shared TypeScript models
+    utils.ts                     Helper format tiền, route, asset
+    api/httpClient.ts            API client placeholder
+    app/                         App provider, state, router helper
+    components/                  UI components dùng chung
+    features/web/                Web desktop
+    features/app/                Mobile app
+    features/web-app/            Phone web app/PWA
+    features/admin/              Admin console
 ```
 
-## Các Phần Sản Phẩm
+## Chạy Local
 
-- Tìm kiếm nhà theo khu vực, giá, diện tích và tiện ích.
-- Xem chi tiết nhà với ảnh thật, mô tả, phí, lịch trống và bản đồ.
-- Lưu nhà, so sánh nhanh và quản lý danh sách quan tâm.
-- Đặt lịch xem nhà và theo dõi trạng thái lịch hẹn.
-- Nhắn tin giữa người thuê, chủ nhà và hỗ trợ.
-- Quản lý cọc, thanh toán và hợp đồng ở mức giao diện.
-- Chủ nhà quản lý tin đăng, khách quan tâm và lịch xem.
-- Admin duyệt tin, xác minh chủ nhà, xử lý khiếu nại và theo dõi vận hành.
+```bash
+cd front-end
+cmd /c npm install
+cmd /c npm start
+```
+
+URL mặc định:
+
+```text
+http://localhost:4173
+```
+
+Chạy port khác:
+
+```bash
+cmd /c npm start -- --port 4174
+```
+
+## Route Chính
+
+- `/web`: web desktop.
+- `/web/search`: kết quả tìm kiếm.
+- `/web/listing/:id`: chi tiết nhà.
+- `/web/booking/:id`: đặt lịch xem nhà.
+- `/web/saved`: nhà đã lưu.
+- `/web/messages`: tin nhắn web.
+- `/web/payments`: cọc/thanh toán web.
+- `/web/owner`: quản lý nhà cho chủ nhà.
+- `/web/post`: đăng tin cho thuê.
+- `/app`: mobile app.
+- `/app/search`: tìm nhà trong app.
+- `/app/listing/:id`: chi tiết nhà trong app.
+- `/app/booking/:id`: đặt lịch trong app.
+- `/app/saved`: nhà đã lưu.
+- `/app/bookings`: lịch hẹn.
+- `/app/messages`: tin nhắn.
+- `/app/payments`: cọc/hợp đồng.
+- `/app/account`: tài khoản/OTP.
+- `/web_app`: phone web app/PWA.
+- `/web_app/search`: tìm nhà trên phone browser.
+- `/web_app/listing/:id`: chi tiết nhà.
+- `/web_app/booking/:id`: đặt lịch.
+- `/web_app/saved`: nhà đã lưu.
+- `/web_app/manage`: nhà đang thuê.
+- `/web_app/messages`: tin nhắn.
+- `/web_app/payments`: cọc/hợp đồng.
+- `/admin`: admin overview.
+- `/admin/listings`: duyệt/QA tin đăng.
+- `/admin/verification`: duyệt xác minh chủ nhà.
+- `/admin/automation`: rule tự động.
+- `/admin/billing`: thanh toán/billing.
+- `/admin/disputes`: khiếu nại.
+- `/admin/audit`: audit log.
+- `/admin/access`: phân quyền.
+
+## Scripts
+
+```bash
+cmd /c npm run typecheck
+cmd /c npm run lint
+cmd /c npm run build
+cmd /c npm run check
+cmd /c npm run preview
+```
+
+`npm run check` chạy TypeScript, ESLint và production build.
+
+## State Và Mock Data
+
+- State tổng nằm trong `src/app/AppProvider.tsx`.
+- Dữ liệu được lưu tạm vào `localStorage` để thao tác demo không mất ngay khi đổi màn.
+- Mock listing/message/admin data nằm trong `src/data.ts`.
+- Service mock nằm trong:
+  - `src/services/listings.service.ts`
+  - `src/services/bookings.service.ts`
+  - `src/services/admin.service.ts`
+
+## Nối Backend Sau Này
+
+Frontend đã có API client placeholder tại:
+
+```text
+src/api/httpClient.ts
+```
+
+Biến môi trường:
+
+```text
+VITE_API_BASE_URL=
+```
+
+File mẫu:
+
+```text
+.env.example
+```
+
+Khi backend sẵn sàng, ưu tiên thay mock data ở service layer trước:
+
+- Listing/search/detail/saved: `src/services/listings.service.ts`
+- Booking create/reschedule/cancel: `src/services/bookings.service.ts`
+- Admin rows/actions/metrics: `src/services/admin.service.ts`
+- Auth, messages, payments nên tách tiếp thành service riêng khi có API thật.
+
+Chi tiết endpoint BE cần làm nằm ở:
+
+```text
+docs/backend-requirements.md
+```
+
+## Quy Ước Khi Phát Triển
+
+- Giữ UI tách theo feature: web, app, web-app, admin.
+- Component dùng chung đặt trong `src/components/`.
+- Type dùng chung đặt trong `src/types.ts`.
+- Không gọi API trực tiếp trong component nếu có thể đưa qua `src/services/`.
+- Khi thêm route mới, cập nhật router logic và README này.
+- Khi sửa UI quan trọng, chạy `npm run check` trước khi commit.
+
+## Build Production
+
+```bash
+cmd /c npm run build
+cmd /c npm run preview
+```
+
+Khi deploy production, server cần fallback mọi route frontend về `index.html` để các route như `/web/listing/:id`, `/app/messages`, `/admin/audit` không bị 404 khi refresh.
