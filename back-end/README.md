@@ -1,15 +1,33 @@
 # RentCity Backend
 
-Backend scaffold for the RentCity rental platform.
+Backend scaffold for the RentCity rental platform. This backend is organized as a modular NestJS application, where each business area has its own module, controller, and service.
 
 ## Stack
 
-- NestJS
-- Prisma
-- PostgreSQL
-- TypeScript
-- JWT-ready auth boundary
-- REST APIs prepared for the current frontend
+- Framework: NestJS 11
+- Runtime: Node.js
+- HTTP adapter: Fastify
+- Language: TypeScript strict mode
+- ORM: Prisma
+- Database: PostgreSQL
+- Cache/queue candidate: Redis
+- API style: REST
+- Auth direction: OTP login + JWT/session boundary
+- Validation: Nest validation pipe with `class-validator` ready
+- Security baseline: CORS + Fastify Helmet
+- Dev infra: Docker Compose for PostgreSQL and Redis
+
+## Backend Architecture
+
+RentCity backend is currently a modular monolith. That means it is one deployable backend application, but internally it is split by business capability:
+
+- `controller`: receives HTTP requests and maps routes.
+- `service`: owns business logic for that module.
+- `database`: Prisma access layer.
+- `prisma/schema.prisma`: source of truth for relational data models.
+- `docs/`: API, architecture, and service handoff notes.
+
+This shape is intentional. It keeps the project simple for MVP while still making it easy to split into separate services later if traffic or team size grows.
 
 ## Folder Structure
 
@@ -86,6 +104,8 @@ See:
 
 ```text
 docs/api.md
+docs/architecture.md
+docs/services.md
 ```
 
 ## Frontend Integration
