@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0f8578"/>
-  <path d="M128 243 256 134l128 109v148a22 22 0 0 1-22 22h-72v-96h-68v96h-72a22 22 0 0 1-22-22V243z" fill="#fff"/>
-  <path d="M107 251 256 124l149 127" fill="none" stroke="#fff" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="256" y="468" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="800" fill="#fff">RentCity</text>
-</svg>

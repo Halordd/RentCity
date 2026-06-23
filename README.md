@@ -1,76 +1,26 @@
-# RentCity_Demo
+# RentCity Backend
 
-RentCity frontend for rental discovery, booking, tenant flows, owner workflows, phone web app/PWA, and internal admin operations.
+This branch is reserved for the RentCity backend implementation.
 
-## Source
-
-All frontend code is inside:
+The frontend source is not kept in this branch. Frontend work lives in:
 
 ```text
-front-end/
+developer/front-end
 ```
 
-Current stack:
-
-- React 19
-- Vite 6
-- TypeScript strict mode
-- React Router
-- ESLint flat config
-- Frontend-only mock service layer, ready to swap to real APIs later
-
-Main source layout:
+Backend work should start in:
 
 ```text
-front-end/src/main.tsx
-front-end/src/app/
-front-end/src/api/
-front-end/src/services/
-front-end/src/components/
-front-end/src/features/web/
-front-end/src/features/app/
-front-end/src/features/web-app/
-front-end/src/features/admin/
-front-end/src/data.ts
-front-end/src/types.ts
-front-end/src/utils.ts
+back-end/
 ```
 
-## Run Locally
+## Branch Purpose
 
-```bash
-cd front-end
-cmd /c npm install
-cmd /c npm start
-```
+- `developer/back-end`: backend API, database, auth, storage, realtime, payments, and admin services.
+- `developer/front-end`: React/Vite frontend.
+- `develop`: integration branch for active product work.
+- `main`: stable project snapshot.
 
-Default URL:
+## Backend Scope
 
-```text
-http://localhost:4173
-```
-
-Main routes:
-
-- `/web` - desktop website
-- `/app` - mobile app shell
-- `/web_app` - phone web app/PWA
-- `/admin` - internal admin console
-
-## Quality Checks
-
-```bash
-cd front-end
-cmd /c npm run typecheck
-cmd /c npm run lint
-cmd /c npm run build
-cmd /c npm run check
-```
-
-## Backend Handoff
-
-This repository is frontend-only. Backend requirements are documented in:
-
-```text
-front-end/docs/backend-requirements.md
-```
+See `back-end/README.md` for the API handoff and MVP checklist.
