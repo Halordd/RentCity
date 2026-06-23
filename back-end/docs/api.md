@@ -12,6 +12,23 @@ Authenticated endpoints require:
 Authorization: Bearer <accessToken>
 ```
 
+All responses include `x-request-id`. Clients should keep this value when reporting API errors.
+
+Error response shape:
+
+```json
+{
+  "error": {
+    "statusCode": 400,
+    "code": "BAD_REQUEST",
+    "message": "Validation failed",
+    "timestamp": "2026-06-23T00:00:00.000Z",
+    "path": "/example",
+    "requestId": "..."
+  }
+}
+```
+
 OTP verification returns the token. In non-production mode the OTP request response includes `devCode` for local testing only.
 
 ## Health

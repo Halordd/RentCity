@@ -67,6 +67,7 @@ docker run --env-file .env rentcity-backend npx prisma migrate deploy
 - Run `npm run prisma:deploy`.
 - Confirm `/health` responds after deploy.
 - Confirm `/health/ready` can reach the production database.
+- Confirm error logs include the same request id returned in `x-request-id`.
 - Configure frontend apps with the deployed API base URL.
 - Configure SMS, storage, payment, email, and push adapters before accepting real transactions.
 

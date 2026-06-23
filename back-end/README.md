@@ -17,6 +17,7 @@ Backend for the RentCity rental platform. This service is organized as a modular
 - Security baseline: CORS + Fastify Helmet
 - Dev infra: Docker Compose for PostgreSQL and Redis
 - Deployment: Dockerfile, Prisma migrations, env validation
+- Operations: request ids, consistent error payloads, liveness/readiness checks
 
 ## Backend Architecture
 
@@ -72,6 +73,21 @@ Quality gate:
 
 ```bash
 cmd /c npm run ci
+```
+
+Every response includes an `x-request-id` header. Error responses use a stable shape:
+
+```json
+{
+  "error": {
+    "statusCode": 400,
+    "code": "BAD_REQUEST",
+    "message": "Validation failed",
+    "timestamp": "2026-06-23T00:00:00.000Z",
+    "path": "/example",
+    "requestId": "..."
+  }
+}
 ```
 
 Database tools:
