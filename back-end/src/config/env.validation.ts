@@ -7,6 +7,8 @@ type ValidatedEnv = {
   FRONTEND_ORIGINS: string;
   OTP_TTL_SECONDS: number;
   OTP_REQUEST_LIMIT_PER_HOUR: number;
+  SMS_PROVIDER: string;
+  API_DOCS_ENABLED: boolean;
   PAYMENT_WEBHOOK_SECRET?: string;
   UPLOAD_PUBLIC_BASE_URL?: string;
   REDIS_URL?: string;
@@ -53,6 +55,16 @@ function parsePositiveInteger(value: string, key: string): number {
   return parsed;
 }
 
+function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
+  if (!value) return defaultValue;
+
+  const normalized = value.toLowerCase();
+  if (["true", "1", "yes", "on"].includes(normalized)) return true;
+  if (["false", "0", "no", "off"].includes(normalized)) return false;
+
+  throw new Error("Boolean environment variables must use true/false, 1/0, yes/no, or on/off.");
+}
+
 function assertUrl(value: string, key: string): void {
   try {
     new URL(value);
@@ -73,6 +85,7 @@ export function validateEnv(env: Env): ValidatedEnv {
   const jwtExpiresIn = env.JWT_EXPIRES_IN?.trim() || "7d";
   const frontendOrigins = env.FRONTEND_ORIGINS?.trim() || "";
   const nodeEnv = env.NODE_ENV?.trim();
+  const smsProvider = env.SMS_PROVIDER?.trim() || "local";
 
   assertUrl(databaseUrl, "DATABASE_URL");
 
@@ -104,6 +117,8 @@ export function validateEnv(env: Env): ValidatedEnv {
     FRONTEND_ORIGINS: frontendOrigins,
     OTP_TTL_SECONDS: parseSeconds(env.OTP_TTL_SECONDS?.trim() || "300"),
     OTP_REQUEST_LIMIT_PER_HOUR: parsePositiveInteger(env.OTP_REQUEST_LIMIT_PER_HOUR?.trim() || "5", "OTP_REQUEST_LIMIT_PER_HOUR"),
+    SMS_PROVIDER: smsProvider,
+    API_DOCS_ENABLED: parseBoolean(env.API_DOCS_ENABLED, nodeEnv !== "production"),
     PAYMENT_WEBHOOK_SECRET: env.PAYMENT_WEBHOOK_SECRET?.trim(),
     UPLOAD_PUBLIC_BASE_URL: env.UPLOAD_PUBLIC_BASE_URL?.trim(),
     REDIS_URL: env.REDIS_URL?.trim(),

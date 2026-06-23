@@ -6,6 +6,13 @@ Base URL for local development:
 http://localhost:4000
 ```
 
+Interactive API contract:
+
+```text
+GET /api-docs
+GET /api-docs.json
+```
+
 Authenticated endpoints require:
 
 ```text

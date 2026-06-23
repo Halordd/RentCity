@@ -1,17 +1,19 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { randomInt } from "node:crypto";
 import { PrismaService } from "../../database/prisma.service";
+import { SMS_PROVIDER, SmsProvider } from "../../integrations/sms/sms-provider.interface";
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
+    @Inject(SMS_PROVIDER) private readonly smsProvider: SmsProvider
   ) {}
 
   async requestOtp(phone: string) {
@@ -38,10 +40,13 @@ export class AuthService {
         expiresAt: new Date(Date.now() + ttlSeconds * 1000)
       }
     });
+    const delivery = await this.smsProvider.sendOtp({ phone, code, ttlSeconds });
 
     return {
       phone,
       delivery: "sms",
+      provider: delivery.provider,
+      messageId: delivery.messageId,
       ttlSeconds,
       ...(this.config.get<string>("NODE_ENV") === "production" ? {} : { devCode: code })
     };

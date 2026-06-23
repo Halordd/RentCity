@@ -18,6 +18,7 @@ Backend for the RentCity rental platform. This service is organized as a modular
 - Dev infra: Docker Compose for PostgreSQL and Redis
 - Deployment: Dockerfile, Prisma migrations, env validation
 - Operations: request ids, consistent error payloads, liveness/readiness checks
+- API contract: OpenAPI at `/api-docs` and `/api-docs.json`
 
 ## Backend Architecture
 
@@ -25,6 +26,7 @@ RentCity backend is currently a modular monolith. That means it is one deployabl
 
 - `controller`: receives HTTP requests and maps routes.
 - `service`: owns business logic for that module.
+- `integrations`: owns external provider boundaries such as SMS.
 - `database`: Prisma access layer.
 - `prisma/schema.prisma`: source of truth for relational data models.
 - `docs/`: API, architecture, and service handoff notes.
@@ -42,6 +44,7 @@ back-end/
     common/
     config/
     database/
+    integrations/
     modules/
       admin/
       auth/
@@ -110,6 +113,8 @@ NODE_ENV="development"
 JWT_SECRET="change-me"
 PORT=4000
 FRONTEND_ORIGINS="http://localhost:4173,http://localhost:4174"
+API_DOCS_ENABLED=true
+SMS_PROVIDER="local"
 ```
 
 Production deployment notes are in `docs/deployment.md`.
@@ -144,6 +149,13 @@ The frontend should point `VITE_API_BASE_URL` to this backend, for example:
 
 ```text
 VITE_API_BASE_URL=http://localhost:4000
+```
+
+Backend API contract:
+
+```text
+http://localhost:4000/api-docs
+http://localhost:4000/api-docs.json
 ```
 
 API responses should keep stable fields:

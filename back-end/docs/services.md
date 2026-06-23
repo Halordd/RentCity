@@ -8,6 +8,7 @@ This document describes the backend services/modules and what each one is respon
 | --- | --- | --- | --- |
 | `health` | `HealthController` | `PrismaService` | Liveness and database readiness checks |
 | `auth` | `AuthController` | `AuthService` | OTP request/verify, logout, current user boundary |
+| `integrations` | none | provider interfaces | External service boundaries such as SMS |
 | `users` | `UsersController` | `UsersService` | Tenant/owner/admin profile data |
 | `listings` | `ListingsController` | `ListingsService` | Public listing search and listing detail |
 | `bookings` | `BookingsController` | `BookingsService` | Availability, booking creation, reschedule, cancel |
@@ -29,6 +30,7 @@ Current implementation:
 - `GET /me`
 - Stores OTP challenges with hashed codes and expiry.
 - Limits OTP request volume per phone number.
+- Sends OTP through the SMS provider interface.
 - Issues JWT access tokens.
 - Provides reusable JWT and role guards.
 
@@ -213,6 +215,8 @@ Current implementation:
 - Dockerfile for runtime image.
 - Prisma migration and deployment command.
 - Request id propagation and consistent error responses.
+- OpenAPI generation for frontend/backend contract alignment.
+- Provider interface layer for external integrations.
 - Node built-in unit tests for key production boundaries.
 - GitHub Actions backend quality gate.
 

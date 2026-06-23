@@ -14,6 +14,8 @@ test("env validation parses safe defaults", () => {
   assert.equal(env.JWT_EXPIRES_IN, "7d");
   assert.equal(env.OTP_TTL_SECONDS, 300);
   assert.equal(env.OTP_REQUEST_LIMIT_PER_HOUR, 5);
+  assert.equal(env.API_DOCS_ENABLED, true);
+  assert.equal(env.SMS_PROVIDER, "local");
 });
 
 test("env validation rejects weak production JWT secret", () => {
@@ -29,4 +31,11 @@ test("env validation requires payment webhook secret in production", () => {
 
 test("env validation rejects invalid frontend origins", () => {
   assert.throws(() => validateEnv({ ...baseEnv, FRONTEND_ORIGINS: "not-a-url" }), /FRONTEND_ORIGINS/);
+});
+
+test("env validation parses API docs flag", () => {
+  const env = validateEnv({ ...baseEnv, API_DOCS_ENABLED: "false", SMS_PROVIDER: "twilio" });
+
+  assert.equal(env.API_DOCS_ENABLED, false);
+  assert.equal(env.SMS_PROVIDER, "twilio");
 });

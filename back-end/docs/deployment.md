@@ -11,8 +11,10 @@ JWT_SECRET=replace-with-a-long-random-secret
 JWT_EXPIRES_IN=7d
 PORT=4000
 FRONTEND_ORIGINS=https://rentcity.vn,https://app.rentcity.vn
+API_DOCS_ENABLED=false
 OTP_TTL_SECONDS=300
 OTP_REQUEST_LIMIT_PER_HOUR=5
+SMS_PROVIDER=twilio
 PAYMENT_WEBHOOK_SECRET=replace-with-payment-webhook-secret
 UPLOAD_PUBLIC_BASE_URL=https://cdn.rentcity.vn/uploads
 REDIS_URL=redis://HOST:6379
@@ -68,6 +70,7 @@ docker run --env-file .env rentcity-backend npx prisma migrate deploy
 - Confirm `/health` responds after deploy.
 - Confirm `/health/ready` can reach the production database.
 - Confirm error logs include the same request id returned in `x-request-id`.
+- Keep `/api-docs` disabled in production unless the API contract should be public.
 - Configure frontend apps with the deployed API base URL.
 - Configure SMS, storage, payment, email, and push adapters before accepting real transactions.
 

@@ -16,6 +16,7 @@ This means:
 - Each business domain has its own module.
 - Each module owns its controller and service.
 - Shared infrastructure such as Prisma is isolated under `src/database`.
+- Provider boundaries such as SMS live under `src/integrations`.
 - The code can later be split into independent services if needed.
 
 ## Framework And Runtime
@@ -66,6 +67,7 @@ If production file upload requires multipart handling later, add it intentionall
 HTTP request
   -> Controller
   -> Service
+  -> Integration provider or PrismaService
   -> PrismaService
   -> PostgreSQL
 ```
@@ -90,6 +92,12 @@ Database responsibilities:
 - PrismaService owns database connection lifecycle.
 - Migrations should be created through Prisma.
 
+Integration responsibilities:
+
+- Define provider interfaces.
+- Keep third-party provider details out of domain services.
+- Allow local providers in development and real providers in production.
+
 ## Folder Layout
 
 ```text
@@ -101,9 +109,12 @@ src/
     dto/
   config/
     env.validation.ts
+    openapi.ts
   database/
     database.module.ts
     prisma.service.ts
+  integrations/
+    sms/
   modules/
     auth/
     users/
@@ -147,7 +158,7 @@ Prisma models are grouped around:
 
 ## External Services To Add Later
 
-The service is prepared for these integrations but does not include provider-specific adapters yet:
+The service has provider boundaries and can add provider-specific adapters under `src/integrations`:
 
 - SMS/OTP provider: Twilio, Zalo ZNS, Viettel, FPT, or similar.
 - Object storage: S3-compatible storage, Cloudinary, or Firebase Storage.
