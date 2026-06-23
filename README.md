@@ -1,175 +1,77 @@
 # RentCity
 
-RentCity là nền tảng tìm trọ, thuê nhà và quản lý nhà cho thuê. Dự án hiện là frontend hoàn chỉnh ở mức giao diện và luồng thao tác, chưa nối backend thật.
+RentCity là nền tảng tìm trọ, thuê nhà và quản lý nhà cho thuê. Sản phẩm hướng tới việc làm cho quá trình thuê nhà minh bạch hơn: người thuê xem được thông tin rõ ràng, chủ nhà quản lý được khách và lịch hẹn, còn đội vận hành có công cụ kiểm duyệt riêng.
 
 ## Mục Đích
 
-RentCity được thiết kế để giải quyết ba vấn đề chính trong thị trường thuê trọ/thuê nhà:
+RentCity tập trung giải quyết ba vấn đề chính:
 
-- Người thuê khó kiểm tra tin thật, giá thật, vị trí thật và lịch trống.
-- Chủ nhà khó quản lý tin đăng, khách đặt lịch, thương lượng, cọc và hợp đồng.
-- Đội vận hành cần một hệ thống riêng để duyệt tin, xác minh chủ nhà, xử lý khiếu nại và theo dõi chất lượng.
+- Người thuê cần tìm được nhà thật, giá thật, ảnh thật, vị trí rõ và còn lịch xem.
+- Chủ nhà cần quản lý tin đăng, khách quan tâm, lịch xem, thương lượng, cọc và hợp đồng.
+- Đội RentCity cần kiểm duyệt tin, xác minh chủ nhà, theo dõi chất lượng và xử lý các tình huống phát sinh.
 
-Mục tiêu của sản phẩm là gom toàn bộ hành trình thuê nhà vào một nền tảng rõ ràng: tìm nhà, lưu nhà, đặt lịch xem, nhắn tin, đặt cọc, theo dõi lịch hẹn, quản lý tin đăng và kiểm duyệt nội bộ.
+Mục tiêu cuối cùng là gom hành trình thuê nhà vào một luồng liền mạch: tìm nhà, xem chi tiết, lưu nhà, đặt lịch, nhắn tin, đặt cọc và tiến tới hợp đồng.
+
+## Người Dùng Chính
+
+- Người thuê: tìm trọ, thuê căn hộ, lưu nhà, đặt lịch xem, nhắn tin và theo dõi lịch hẹn.
+- Chủ nhà: đăng tin, quản lý nhà cho thuê, phản hồi khách, theo dõi lịch xem và xử lý cọc/hợp đồng.
+- Admin RentCity: xác minh chủ nhà, duyệt tin, kiểm tra chất lượng, xử lý khiếu nại và quản lý vận hành.
 
 ## Cách RentCity Hoạt Động
 
-RentCity được chia thành các bề mặt sử dụng riêng biệt:
+RentCity được chia thành các bề mặt sử dụng riêng:
 
-- `Web`: website desktop cho người thuê tìm kiếm, xem chi tiết nhà và đặt lịch.
-- `App`: giao diện app mobile cho người thuê, có tìm kiếm, lưu nhà, lịch xem, tin nhắn, thanh toán và tài khoản.
-- `Web app`: bản chạy trên trình duyệt điện thoại/PWA, phục vụ người dùng không cài app.
-- `Admin`: hệ thống nội bộ cho RentCity, tách riêng với quản lý nhà thông thường.
+- Web: website desktop cho người thuê tìm kiếm, xem chi tiết và đặt lịch.
+- App: giao diện mobile app cho người thuê sử dụng thường xuyên.
+- Web app: bản chạy trên trình duyệt điện thoại/PWA cho người không cài app.
+- Admin: hệ thống nội bộ cho đội RentCity, tách riêng với phần quản lý nhà thông thường.
 
-Hiện tại dữ liệu là mock/local state để frontend có thể chạy độc lập. Khi backend hoàn thành, service layer trong frontend sẽ thay dữ liệu mock bằng API thật.
+Hiện tại dự án là frontend, mô phỏng đầy đủ giao diện và luồng thao tác chính. Dữ liệu đang là mock/local state để có thể trải nghiệm sản phẩm trước khi nối backend thật.
 
-## Workflow Chính
+## Workflow
 
-### Người Thuê
+```mermaid
+flowchart TD
+    A["Người thuê cần tìm nhà"] --> B["Mở Web / App / Web app"]
+    B --> C["Tìm kiếm theo khu vực, giá, diện tích, tiện ích"]
+    C --> D["Xem chi tiết nhà: ảnh thật, giá, phí, mô tả, vị trí"]
+    D --> E{"Phù hợp nhu cầu?"}
+    E -->|Chưa| C
+    E -->|Có| F["Lưu nhà hoặc so sánh"]
+    F --> G["Đặt lịch xem nhà"]
+    G --> H["Nhắn tin / thương lượng với chủ nhà"]
+    H --> I["Đặt cọc"]
+    I --> J["Tiến tới hợp đồng thuê"]
 
-1. Vào web/app/web app.
-2. Tìm nhà theo khu vực, giá, diện tích, tiện ích và trạng thái còn trống.
-3. Xem chi tiết nhà với ảnh thật, thông tin giá, phí, mô tả, tiện ích và vị trí bản đồ.
-4. Lưu nhà yêu thích để so sánh.
-5. Đặt lịch xem nhà.
-6. Nhắn tin/thương lượng với chủ nhà hoặc hỗ trợ.
-7. Theo dõi lịch hẹn, trạng thái cọc, thanh toán và hợp đồng.
+    K["Chủ nhà đăng tin"] --> L["Thêm ảnh, giá, phí, tiện ích, lịch trống"]
+    L --> M["Gửi duyệt tin"]
+    M --> N["Admin xác minh chủ nhà và kiểm tra tin đăng"]
+    N --> O{"Tin hợp lệ?"}
+    O -->|Cần bổ sung| P["Yêu cầu chủ nhà chỉnh sửa"]
+    P --> L
+    O -->|Hợp lệ| Q["Tin được hiển thị cho người thuê"]
+    Q --> C
 
-### Chủ Nhà
+    G --> R["Chủ nhà nhận yêu cầu xem"]
+    R --> S{"Chủ nhà xác nhận?"}
+    S -->|Đổi lịch| T["Đề xuất lịch khác"]
+    T --> G
+    S -->|Xác nhận| U["Lịch xem được ghi nhận"]
+    U --> H
 
-1. Tạo hồ sơ chủ nhà.
-2. Đăng tin nhà/phòng/căn hộ cho thuê.
-3. Thêm ảnh thật, giá, phí, tiện ích, mô tả và lịch trống.
-4. Nhận yêu cầu xem nhà.
-5. Xác nhận, đổi lịch hoặc phản hồi khách thuê.
-6. Quản lý danh sách nhà, khách quan tâm, lịch hẹn, cọc và hợp đồng.
-
-### Admin RentCity
-
-1. Duyệt xác minh chủ nhà.
-2. Kiểm tra chất lượng tin đăng.
-3. Quản lý khiếu nại, thanh toán, hoàn cọc và hợp đồng.
-4. Theo dõi audit log, phân quyền nội bộ và chỉ số vận hành.
-5. Cấu hình rule tự động cho nhắc lịch, nhắc phản hồi và chăm sóc khách thuê.
-
-## Luồng Sản Phẩm Tổng Quát
-
-```text
-Người thuê tìm nhà
-  -> lọc kết quả
-  -> xem chi tiết
-  -> lưu/so sánh
-  -> đặt lịch xem
-  -> nhắn tin thương lượng
-  -> đặt cọc
-  -> ký hợp đồng
-
-Chủ nhà đăng tin
-  -> RentCity/Admin duyệt tin
-  -> tin được hiển thị
-  -> nhận khách đặt lịch
-  -> xác nhận lịch
-  -> quản lý cọc/hợp đồng
-
-Admin vận hành
-  -> xác minh chủ nhà
-  -> kiểm duyệt tin
-  -> xử lý tranh chấp
-  -> quản lý thanh toán
-  -> theo dõi audit và báo cáo
+    V["Admin vận hành"] --> N
+    V --> W["Theo dõi khiếu nại, thanh toán, audit log"]
+    V --> X["Cấu hình nhắc lịch, nhắc phản hồi, chăm sóc khách thuê"]
 ```
 
-## Source Code
+## Các Phần Sản Phẩm
 
-Frontend hiện nằm trong:
-
-```text
-front-end/
-```
-
-Stack hiện tại:
-
-- React 19
-- Vite 6
-- TypeScript strict mode
-- React Router
-- ESLint flat config
-- Mock service layer để dễ thay bằng API thật sau này
-
-Các nhóm source chính:
-
-```text
-front-end/src/app/              App provider, state, router helpers
-front-end/src/api/              HTTP client placeholder
-front-end/src/services/         Service layer cho dữ liệu mock/API
-front-end/src/components/       UI components dùng chung
-front-end/src/features/web/     Website desktop
-front-end/src/features/app/     Mobile app shell
-front-end/src/features/web-app/ Phone web app/PWA
-front-end/src/features/admin/   Admin console
-front-end/src/data.ts           Mock data
-front-end/src/types.ts          Shared TypeScript models
-```
-
-## Chạy Local
-
-```bash
-cd front-end
-cmd /c npm install
-cmd /c npm start
-```
-
-URL mặc định:
-
-```text
-http://localhost:4173
-```
-
-Các route chính:
-
-- `/web`: website desktop.
-- `/app`: app mobile shell.
-- `/web_app`: web app/PWA chạy trên phone browser.
-- `/admin`: admin console nội bộ.
-
-## Kiểm Tra Chất Lượng
-
-```bash
-cd front-end
-cmd /c npm run typecheck
-cmd /c npm run lint
-cmd /c npm run build
-cmd /c npm run check
-```
-
-`npm run check` chạy TypeScript, ESLint và production build.
-
-## Backend Cần Làm Sau
-
-Repo hiện chưa có backend thật. Các phần cần backend gồm:
-
-- Auth OTP, user profile, role và permission.
-- Listing CRUD, upload ảnh thật, search/filter, map/geocode.
-- Booking, lịch xem nhà, đổi lịch, hủy lịch, xác nhận lịch.
-- Saved homes và so sánh nhà đã lưu.
-- Messaging realtime hoặc polling.
-- Payment/cọc, hoàn tiền, biên nhận.
-- Contract PDF và trạng thái ký hợp đồng.
-- Owner dashboard API.
-- Admin verification, listing QA, dispute, billing, audit log.
-- Notification SMS/email/push.
-
-Tài liệu bàn giao backend chi tiết nằm trong:
-
-```text
-back-end/README.md
-```
-
-## Mô Hình Nhánh
-
-- `main`: snapshot ổn định.
-- `develop`: nhánh tích hợp sản phẩm.
-- `developer/front-end`: nhánh frontend.
-- `developer/back-end`: nhánh backend riêng, không chứa source frontend.
-- `stagging`: nhánh staging theo yêu cầu dự án.
-- `release/v0.1.0`: nhánh phiên bản đầu tiên.
+- Tìm kiếm nhà theo khu vực, giá, diện tích và tiện ích.
+- Xem chi tiết nhà với ảnh thật, mô tả, phí, lịch trống và bản đồ.
+- Lưu nhà, so sánh nhanh và quản lý danh sách quan tâm.
+- Đặt lịch xem nhà và theo dõi trạng thái lịch hẹn.
+- Nhắn tin giữa người thuê, chủ nhà và hỗ trợ.
+- Quản lý cọc, thanh toán và hợp đồng ở mức giao diện.
+- Chủ nhà quản lý tin đăng, khách quan tâm và lịch xem.
+- Admin duyệt tin, xác minh chủ nhà, xử lý khiếu nại và theo dõi vận hành.
