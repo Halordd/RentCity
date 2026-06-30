@@ -61,6 +61,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 - `POST /owner/listings` - owner/admin
 - `PATCH /owner/listings/:id` - owner/admin
 - `POST /owner/listings/:id/images` - owner/admin
+- `POST /owner/listings/:id/images/upload-intent` - owner/admin, returns upload URL and public image URL
 - `GET /owner/bookings` - owner/admin
 - `PATCH /owner/bookings/:id/confirm` - owner/admin
 
@@ -86,7 +87,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 
 ## Payments
 
-- `POST /payments/deposits` - authenticated
+- `POST /payments/deposits` - authenticated, returns payment record and checkout intent
 - `GET /payments/:id` - payment owner only
 - `POST /payments/webhook` - provider callback, signed with `x-rentcity-signature` in production
 

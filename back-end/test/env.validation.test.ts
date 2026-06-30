@@ -16,6 +16,8 @@ test("env validation parses safe defaults", () => {
   assert.equal(env.OTP_REQUEST_LIMIT_PER_HOUR, 5);
   assert.equal(env.API_DOCS_ENABLED, true);
   assert.equal(env.SMS_PROVIDER, "local");
+  assert.equal(env.PAYMENT_PROVIDER, "local");
+  assert.equal(env.STORAGE_PROVIDER, "local");
 });
 
 test("env validation rejects weak production JWT secret", () => {
@@ -33,9 +35,19 @@ test("env validation rejects invalid frontend origins", () => {
   assert.throws(() => validateEnv({ ...baseEnv, FRONTEND_ORIGINS: "not-a-url" }), /FRONTEND_ORIGINS/);
 });
 
-test("env validation parses API docs flag", () => {
-  const env = validateEnv({ ...baseEnv, API_DOCS_ENABLED: "false", SMS_PROVIDER: "twilio" });
+test("env validation parses provider and API docs flags", () => {
+  const env = validateEnv({
+    ...baseEnv,
+    API_DOCS_ENABLED: "false",
+    SMS_PROVIDER: "twilio",
+    PAYMENT_PROVIDER: "payos",
+    STORAGE_PROVIDER: "s3",
+    LOCAL_PAYMENT_CHECKOUT_BASE_URL: "http://localhost:4000/pay"
+  });
 
   assert.equal(env.API_DOCS_ENABLED, false);
   assert.equal(env.SMS_PROVIDER, "twilio");
+  assert.equal(env.PAYMENT_PROVIDER, "payos");
+  assert.equal(env.STORAGE_PROVIDER, "s3");
+  assert.equal(env.LOCAL_PAYMENT_CHECKOUT_BASE_URL, "http://localhost:4000/pay");
 });

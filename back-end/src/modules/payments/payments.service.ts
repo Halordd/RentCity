@@ -1,10 +1,11 @@
-import { ForbiddenException, Injectable, UnauthorizedException, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, UnauthorizedException, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaymentStatus, UserRole } from "@prisma/client";
 import { Buffer } from "node:buffer";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { PrismaService } from "../../database/prisma.service";
+import { PAYMENT_GATEWAY, PaymentGateway } from "../../integrations/payments/payment-gateway.interface";
 import { CreateDepositDto } from "./dto/create-deposit.dto";
 import { PaymentWebhookDto } from "./dto/payment-webhook.dto";
 
@@ -12,23 +13,37 @@ import { PaymentWebhookDto } from "./dto/payment-webhook.dto";
 export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
+    @Inject(PAYMENT_GATEWAY) private readonly paymentGateway: PaymentGateway
   ) {}
 
   async createDeposit(user: AuthenticatedUser, payload: CreateDepositDto) {
     const listing = await this.prisma.listing.findUnique({ where: { id: payload.listingId } });
     if (!listing) throw new NotFoundException("Listing not found");
+    const reference = this.createPaymentReference();
+    const intent = await this.paymentGateway.createDepositIntent({
+      reference,
+      amount: payload.amount,
+      currency: "VND",
+      provider: payload.provider,
+      description: `RentCity deposit for ${listing.title}`
+    });
 
-    return this.prisma.payment.create({
+    const payment = await this.prisma.payment.create({
       data: {
         userId: user.id,
         listingId: payload.listingId,
         amount: payload.amount,
-        provider: payload.provider,
-        reference: this.createPaymentReference(),
+        provider: intent.provider,
+        reference: intent.reference,
         status: PaymentStatus.PENDING
       }
     });
+
+    return {
+      payment,
+      checkout: intent
+    };
   }
 
   async detail(user: AuthenticatedUser, id: string) {

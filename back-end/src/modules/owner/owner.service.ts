@@ -1,14 +1,19 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { BookingStatus, ListingStatus, UserRole } from "@prisma/client";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { PrismaService } from "../../database/prisma.service";
+import { STORAGE_PROVIDER, StorageProvider } from "../../integrations/storage/storage-provider.interface";
 import { AddListingImageDto } from "./dto/add-listing-image.dto";
+import { CreateImageUploadIntentDto } from "./dto/create-image-upload-intent.dto";
 import { CreateOwnerListingDto } from "./dto/create-owner-listing.dto";
 import { UpdateOwnerListingDto } from "./dto/update-owner-listing.dto";
 
 @Injectable()
 export class OwnerService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(STORAGE_PROVIDER) private readonly storageProvider: StorageProvider
+  ) {}
 
   async listings(user: AuthenticatedUser) {
     const where = user.role === UserRole.ADMIN ? {} : { ownerId: user.id };
@@ -57,6 +62,28 @@ export class OwnerService {
         sortOrder: payload.sortOrder ?? 0
       }
     });
+  }
+
+  async createImageUploadIntent(user: AuthenticatedUser, id: string, payload: CreateImageUploadIntentDto) {
+    await this.assertListingAccess(user, id);
+
+    const upload = await this.storageProvider.createListingImageUpload({
+      ownerId: user.id,
+      listingId: id,
+      filename: payload.filename,
+      contentType: payload.contentType,
+      sizeBytes: payload.sizeBytes
+    });
+
+    return {
+      upload,
+      image: {
+        listingId: id,
+        url: upload.publicUrl,
+        alt: payload.alt,
+        sortOrder: payload.sortOrder ?? 0
+      }
+    };
   }
 
   async bookings(user: AuthenticatedUser) {

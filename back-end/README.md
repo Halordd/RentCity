@@ -26,7 +26,7 @@ RentCity backend is currently a modular monolith. That means it is one deployabl
 
 - `controller`: receives HTTP requests and maps routes.
 - `service`: owns business logic for that module.
-- `integrations`: owns external provider boundaries such as SMS.
+- `integrations`: owns external provider boundaries such as SMS, payment, and storage.
 - `database`: Prisma access layer.
 - `prisma/schema.prisma`: source of truth for relational data models.
 - `docs/`: API, architecture, and service handoff notes.
@@ -115,6 +115,8 @@ PORT=4000
 FRONTEND_ORIGINS="http://localhost:4173,http://localhost:4174"
 API_DOCS_ENABLED=true
 SMS_PROVIDER="local"
+PAYMENT_PROVIDER="local"
+STORAGE_PROVIDER="local"
 ```
 
 Production deployment notes are in `docs/deployment.md`.
@@ -127,7 +129,7 @@ Production deployment notes are in `docs/deployment.md`.
 - Bookings: availability, create, reschedule, cancel, owner confirm.
 - Saved homes: save, unsave, list saved homes.
 - Messages: conversations and basic message creation.
-- Payments: deposit request, payment lookup, signed webhook boundary.
+- Payments: deposit request, checkout intent, payment lookup, signed webhook boundary.
 - Contracts: draft contract creation and lookup.
 - Owner: portfolio, booking queue, listing management.
 - Admin: metrics, verification review, disputes, audit logs, access boundary.

@@ -8,8 +8,11 @@ type ValidatedEnv = {
   OTP_TTL_SECONDS: number;
   OTP_REQUEST_LIMIT_PER_HOUR: number;
   SMS_PROVIDER: string;
+  PAYMENT_PROVIDER: string;
+  STORAGE_PROVIDER: string;
   API_DOCS_ENABLED: boolean;
   PAYMENT_WEBHOOK_SECRET?: string;
+  LOCAL_PAYMENT_CHECKOUT_BASE_URL?: string;
   UPLOAD_PUBLIC_BASE_URL?: string;
   REDIS_URL?: string;
   NODE_ENV?: string;
@@ -86,6 +89,8 @@ export function validateEnv(env: Env): ValidatedEnv {
   const frontendOrigins = env.FRONTEND_ORIGINS?.trim() || "";
   const nodeEnv = env.NODE_ENV?.trim();
   const smsProvider = env.SMS_PROVIDER?.trim() || "local";
+  const paymentProvider = env.PAYMENT_PROVIDER?.trim() || "local";
+  const storageProvider = env.STORAGE_PROVIDER?.trim() || "local";
 
   assertUrl(databaseUrl, "DATABASE_URL");
 
@@ -105,6 +110,10 @@ export function validateEnv(env: Env): ValidatedEnv {
     assertUrl(env.UPLOAD_PUBLIC_BASE_URL, "UPLOAD_PUBLIC_BASE_URL");
   }
 
+  if (env.LOCAL_PAYMENT_CHECKOUT_BASE_URL) {
+    assertUrl(env.LOCAL_PAYMENT_CHECKOUT_BASE_URL, "LOCAL_PAYMENT_CHECKOUT_BASE_URL");
+  }
+
   if (env.REDIS_URL) {
     assertUrl(env.REDIS_URL, "REDIS_URL");
   }
@@ -118,8 +127,11 @@ export function validateEnv(env: Env): ValidatedEnv {
     OTP_TTL_SECONDS: parseSeconds(env.OTP_TTL_SECONDS?.trim() || "300"),
     OTP_REQUEST_LIMIT_PER_HOUR: parsePositiveInteger(env.OTP_REQUEST_LIMIT_PER_HOUR?.trim() || "5", "OTP_REQUEST_LIMIT_PER_HOUR"),
     SMS_PROVIDER: smsProvider,
+    PAYMENT_PROVIDER: paymentProvider,
+    STORAGE_PROVIDER: storageProvider,
     API_DOCS_ENABLED: parseBoolean(env.API_DOCS_ENABLED, nodeEnv !== "production"),
     PAYMENT_WEBHOOK_SECRET: env.PAYMENT_WEBHOOK_SECRET?.trim(),
+    LOCAL_PAYMENT_CHECKOUT_BASE_URL: env.LOCAL_PAYMENT_CHECKOUT_BASE_URL?.trim(),
     UPLOAD_PUBLIC_BASE_URL: env.UPLOAD_PUBLIC_BASE_URL?.trim(),
     REDIS_URL: env.REDIS_URL?.trim(),
     NODE_ENV: nodeEnv

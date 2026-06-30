@@ -8,7 +8,7 @@ This document describes the backend services/modules and what each one is respon
 | --- | --- | --- | --- |
 | `health` | `HealthController` | `PrismaService` | Liveness and database readiness checks |
 | `auth` | `AuthController` | `AuthService` | OTP request/verify, logout, current user boundary |
-| `integrations` | none | provider interfaces | External service boundaries such as SMS |
+| `integrations` | none | provider interfaces | External service boundaries such as SMS, payment, and storage |
 | `users` | `UsersController` | `UsersService` | Tenant/owner/admin profile data |
 | `listings` | `ListingsController` | `ListingsService` | Public listing search and listing detail |
 | `bookings` | `BookingsController` | `BookingsService` | Availability, booking creation, reschedule, cancel |
@@ -118,10 +118,12 @@ Current implementation:
 - `POST /owner/listings`
 - `PATCH /owner/listings/:id`
 - `POST /owner/listings/:id/images`
+- `POST /owner/listings/:id/images/upload-intent`
 - `GET /owner/bookings`
 - `PATCH /owner/bookings/:id/confirm`
 - Owner/admin role guard.
 - Listing ownership checks.
+- Upload intent creation through the storage provider interface.
 - Owner booking queue and booking confirmation.
 
 External adapters still needed:
@@ -160,6 +162,7 @@ Current implementation:
 - `GET /payments/:id`
 - `POST /payments/webhook`
 - Creates pending deposit records.
+- Creates checkout intent through the payment gateway interface.
 - Restricts payment detail to the paying user.
 - Updates payment status by provider reference.
 - Requires HMAC webhook signing when `PAYMENT_WEBHOOK_SECRET` is configured.
