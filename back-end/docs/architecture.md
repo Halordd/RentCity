@@ -154,6 +154,7 @@ Prisma models are grouped around:
 - Saved homes: `SavedListing`
 - Communication: `Conversation`, `Message`
 - Money flow: `Payment`
+- Payment webhook audit: `PaymentWebhookEvent`
 - Legal flow: `Contract`
 - Trust and moderation: `Verification`, `AuditLog`
 - App/PWA state: `AppState`, `PushSubscription`

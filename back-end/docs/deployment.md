@@ -69,6 +69,7 @@ docker run --env-file .env rentcity-backend npx prisma migrate deploy
 - Set `NODE_ENV=production`.
 - Rotate `JWT_SECRET` away from local examples.
 - Set `PAYMENT_WEBHOOK_SECRET` and verify provider callbacks with `x-rentcity-signature`.
+- Ensure payment providers send a stable event id; RentCity stores webhook events idempotently.
 - Run `npm run prisma:deploy`.
 - Confirm `/health` responds after deploy.
 - Confirm `/health/ready` can reach the production database.

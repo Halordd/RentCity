@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { UnauthorizedException } from "@nestjs/common";
 import type { ConfigService } from "@nestjs/config";
-import { PaymentStatus } from "@prisma/client";
+import { PaymentStatus, Prisma } from "@prisma/client";
 import { createHmac } from "node:crypto";
 import type { PrismaService } from "../src/database/prisma.service";
 import type { PaymentGateway } from "../src/integrations/payments/payment-gateway.interface";
@@ -10,9 +10,31 @@ import type { AuthenticatedUser } from "../src/common/auth/auth.types";
 import type { PaymentWebhookDto } from "../src/modules/payments/dto/payment-webhook.dto";
 import { PaymentsService } from "../src/modules/payments/payments.service";
 
-function createService(secret?: string) {
+function createService(secret?: string, options: { duplicateWebhook?: boolean } = {}) {
   let updatePayload: unknown;
   let createPayload: unknown;
+  let webhookEventPayload: unknown;
+  const tx = {
+    payment: {
+      findUnique: async () => ({ id: "payment_1" }),
+      updateMany: async (payload: unknown) => {
+        updatePayload = payload;
+        return { count: 1 };
+      }
+    },
+    paymentWebhookEvent: {
+      create: async (payload: unknown) => {
+        webhookEventPayload = payload;
+        if (options.duplicateWebhook) {
+          throw new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+            code: "P2002",
+            clientVersion: "test"
+          });
+        }
+        return { id: "webhook_1" };
+      }
+    }
+  };
   const prisma = {
     listing: {
       findUnique: async () => ({ id: "listing_1", title: "Studio Nguyen Van Cu", ownerId: "owner_1" })
@@ -22,11 +44,10 @@ function createService(secret?: string) {
         createPayload = payload;
         return { id: "payment_1", ...((payload as { data: Record<string, unknown> }).data ?? {}) };
       },
-      updateMany: async (payload: unknown) => {
-        updatePayload = payload;
-        return { count: 1 };
-      }
-    }
+      updateMany: tx.payment.updateMany
+    },
+    paymentWebhookEvent: tx.paymentWebhookEvent,
+    $transaction: async <T>(callback: (client: typeof tx) => Promise<T>) => callback(tx)
   } as unknown as PrismaService;
   const config = {
     get: <T>(key: string) => (key === "PAYMENT_WEBHOOK_SECRET" ? secret : undefined) as T
@@ -43,6 +64,7 @@ function createService(secret?: string) {
   return {
     service: new PaymentsService(prisma, config, gateway),
     getCreatePayload: () => createPayload,
+    getWebhookEventPayload: () => webhookEventPayload,
     getUpdatePayload: () => updatePayload
   };
 }
@@ -61,16 +83,56 @@ test("payment webhook accepts valid signatures and updates by reference", async 
     eventId: "evt_1",
     provider: "payos"
   };
-  const { service, getUpdatePayload } = createService(secret);
+  const { service, getUpdatePayload, getWebhookEventPayload } = createService(secret);
 
   const result = await service.webhook(payload, sign(payload, secret));
 
   assert.equal(result.received, true);
+  assert.equal(result.duplicate, false);
+  assert.equal(result.eventKey, "payos:evt_1");
   assert.equal(result.updated, 1);
+  const webhookEventPayload = getWebhookEventPayload() as { data: { processedAt: Date } };
+  assert.deepEqual(webhookEventPayload, {
+    data: {
+      paymentId: "payment_1",
+      provider: "payos",
+      eventKey: "payos:evt_1",
+      reference: "rc_123",
+      status: PaymentStatus.PAID,
+      payload: {
+        reference: "rc_123",
+        status: PaymentStatus.PAID,
+        amount: 500000,
+        provider: "payos",
+        eventId: "evt_1"
+      },
+      processedAt: webhookEventPayload.data.processedAt
+    }
+  });
   assert.deepEqual(getUpdatePayload(), {
     where: { reference: "rc_123" },
     data: { status: PaymentStatus.PAID, provider: "payos" }
   });
+});
+
+test("payment webhook marks duplicate events without updating payment twice", async () => {
+  const secret = "payment-secret";
+  const payload: PaymentWebhookDto = {
+    reference: "rc_123",
+    status: PaymentStatus.PAID,
+    amount: 500000,
+    eventId: "evt_1",
+    provider: "payos"
+  };
+  const { service, getUpdatePayload } = createService(secret, { duplicateWebhook: true });
+
+  const result = await service.webhook(payload, sign(payload, secret));
+
+  assert.equal(result.received, true);
+  assert.equal(result.duplicate, true);
+  assert.equal(result.eventKey, "payos:evt_1");
+  assert.equal(result.updated, 0);
+  assert.equal(getUpdatePayload(), undefined);
 });
 
 test("payment deposit creates a payment and checkout intent", async () => {

@@ -166,12 +166,12 @@ Current implementation:
 - Restricts payment detail to the paying user.
 - Updates payment status by provider reference.
 - Requires HMAC webhook signing when `PAYMENT_WEBHOOK_SECRET` is configured.
+- Stores webhook events and marks duplicate provider retries as idempotent.
 
 External adapters still needed:
 
 - Provider integration.
 - Signed webhook verification.
-- Idempotent webhook handling.
 - Payment status reconciliation.
 - Receipt storage.
 - Refund flow.

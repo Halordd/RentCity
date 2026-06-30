@@ -89,7 +89,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 
 - `POST /payments/deposits` - authenticated, returns payment record and checkout intent
 - `GET /payments/:id` - payment owner only
-- `POST /payments/webhook` - provider callback, signed with `x-rentcity-signature` in production
+- `POST /payments/webhook` - provider callback, signed with `x-rentcity-signature` in production, idempotent by provider event key
 
 ## Contracts
 

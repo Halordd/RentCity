@@ -1,8 +1,8 @@
 import { ForbiddenException, Inject, Injectable, UnauthorizedException, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaymentStatus, UserRole } from "@prisma/client";
+import { PaymentStatus, Prisma, UserRole } from "@prisma/client";
 import { Buffer } from "node:buffer";
-import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { PrismaService } from "../../database/prisma.service";
 import { PAYMENT_GATEWAY, PaymentGateway } from "../../integrations/payments/payment-gateway.interface";
@@ -60,21 +60,61 @@ export class PaymentsService {
 
   async webhook(payload: PaymentWebhookDto, signature?: string) {
     this.assertWebhookSignature(payload, signature);
+    const provider = payload.provider ?? "unknown";
+    const eventKey = this.webhookEventKey(payload, provider);
 
-    const updated = await this.prisma.payment.updateMany({
-      where: { reference: payload.reference },
-      data: {
+    try {
+      const result = await this.prisma.$transaction(async (tx) => {
+        const payment = await tx.payment.findUnique({
+          where: { reference: payload.reference },
+          select: { id: true }
+        });
+
+        await tx.paymentWebhookEvent.create({
+          data: {
+            paymentId: payment?.id,
+            provider,
+            eventKey,
+            reference: payload.reference,
+            status: payload.status,
+            payload: this.webhookPayloadJson(payload),
+            processedAt: new Date()
+          }
+        });
+
+        const updated = await tx.payment.updateMany({
+          where: { reference: payload.reference },
+          data: {
+            status: payload.status,
+            provider
+          }
+        });
+
+        return updated.count;
+      });
+
+      return {
+        received: true,
+        duplicate: false,
+        eventKey,
+        reference: payload.reference,
         status: payload.status,
-        provider: payload.provider
+        updated: result
+      };
+    } catch (error) {
+      if (this.isUniqueConstraintViolation(error)) {
+        return {
+          received: true,
+          duplicate: true,
+          eventKey,
+          reference: payload.reference,
+          status: payload.status,
+          updated: 0
+        };
       }
-    });
 
-    return {
-      received: true,
-      reference: payload.reference,
-      status: payload.status,
-      updated: updated.count
-    };
+      throw error;
+    }
   }
 
   private createPaymentReference(): string {
@@ -95,6 +135,25 @@ export class PaymentsService {
 
   private webhookSigningPayload(payload: PaymentWebhookDto): string {
     return [payload.reference, payload.status, payload.amount ?? "", payload.eventId ?? ""].join(".");
+  }
+
+  private webhookEventKey(payload: PaymentWebhookDto, provider: string): string {
+    if (payload.eventId) return `${provider}:${payload.eventId}`;
+    return createHash("sha256").update(this.webhookSigningPayload(payload)).digest("hex");
+  }
+
+  private webhookPayloadJson(payload: PaymentWebhookDto): Prisma.InputJsonObject {
+    return {
+      reference: payload.reference,
+      status: payload.status,
+      amount: payload.amount,
+      provider: payload.provider,
+      eventId: payload.eventId
+    };
+  }
+
+  private isUniqueConstraintViolation(error: unknown): boolean {
+    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
   }
 
   private safeEqual(expected: string, received: string): boolean {
