@@ -3,11 +3,15 @@ import { BookingStatus, ListingStatus, UserRole } from "@prisma/client";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { PrismaService } from "../../database/prisma.service";
 import { CreateBookingDto } from "./dto/create-booking.dto";
+import { NotificationsService } from "../notifications/notifications.service";
 import { RescheduleBookingDto } from "./dto/reschedule-booking.dto";
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService
+  ) {}
 
   async availability(listingId: string) {
     const listing = await this.prisma.listing.findUnique({
@@ -47,13 +51,13 @@ export class BookingsService {
   async create(user: AuthenticatedUser, payload: CreateBookingDto) {
     const listing = await this.prisma.listing.findUnique({
       where: { id: payload.listingId },
-      select: { id: true, status: true }
+      select: { id: true, status: true, ownerId: true, title: true }
     });
     if (!listing || listing.status !== ListingStatus.PUBLISHED) {
       throw new NotFoundException("Listing not found");
     }
 
-    return this.prisma.booking.create({
+    const booking = await this.prisma.booking.create({
       data: {
         listingId: payload.listingId,
         tenantId: user.id,
@@ -64,6 +68,22 @@ export class BookingsService {
       },
       include: { listing: { select: { id: true, title: true, address: true } } }
     });
+
+    await this.notifications.enqueue({
+      userId: listing.ownerId,
+      topic: "booking.created",
+      title: "Co lich xem nha moi",
+      body: `Khach thue vua dat lich xem ${listing.title}.`,
+      payload: {
+        bookingId: booking.id,
+        listingId: listing.id,
+        tenantId: user.id,
+        date: payload.date,
+        timeSlot: payload.timeSlot
+      }
+    });
+
+    return booking;
   }
 
   async reschedule(user: AuthenticatedUser, id: string, payload: RescheduleBookingDto) {

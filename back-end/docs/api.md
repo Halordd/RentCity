@@ -112,4 +112,6 @@ OTP verification returns the token. In non-production mode the OTP request respo
 
 - `GET /me/app-state` - authenticated
 - `PATCH /me/app-state` - authenticated
+- `GET /me/notifications` - authenticated
+- `PATCH /me/notifications/:id/read` - authenticated
 - `POST /notifications/push-subscriptions` - authenticated

@@ -18,7 +18,7 @@ This document describes the backend services/modules and what each one is respon
 | `admin` | `AdminController` | `AdminService` | Metrics, verification, listing review, disputes, audit logs |
 | `payments` | `PaymentsController` | `PaymentsService` | Deposit request, payment detail, payment webhook |
 | `contracts` | `ContractsController` | `ContractsService` | Contract creation and contract detail |
-| `notifications` | `NotificationsController` | `NotificationsService` | PWA app state and push subscription |
+| `notifications` | `NotificationsController` | `NotificationsService` | PWA app state, notification outbox, and push subscription |
 
 ## Auth Service
 
@@ -199,8 +199,11 @@ Current implementation:
 
 - `GET /me/app-state`
 - `PATCH /me/app-state`
+- `GET /me/notifications`
+- `PATCH /me/notifications/:id/read`
 - `POST /notifications/push-subscriptions`
 - Stores app state per authenticated user.
+- Stores in-app notification outbox entries.
 - Stores web push subscription payloads.
 
 External adapters still needed:

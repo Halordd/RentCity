@@ -136,7 +136,7 @@ Production deployment notes are in `docs/deployment.md`.
 - Contracts: draft contract creation and lookup.
 - Owner: portfolio, booking queue, listing management.
 - Admin: metrics, verification review, disputes, audit logs, access boundary.
-- Notifications/PWA: push subscription and app-state endpoints.
+- Notifications/PWA: notification outbox, push subscription, and app-state endpoints.
 
 ## API Docs
 

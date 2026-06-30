@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ok } from "../../common/api-response";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
@@ -25,5 +25,15 @@ export class NotificationsController {
   @Post("notifications/push-subscriptions")
   async createPushSubscription(@CurrentUser() user: AuthenticatedUser, @Body() body: CreatePushSubscriptionDto) {
     return ok(await this.notificationsService.createPushSubscription(user.id, body));
+  }
+
+  @Get("me/notifications")
+  async notifications(@CurrentUser() user: AuthenticatedUser) {
+    return ok(await this.notificationsService.listUserNotifications(user.id));
+  }
+
+  @Patch("me/notifications/:id/read")
+  async markRead(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return ok(await this.notificationsService.markRead(user.id, id));
   }
 }

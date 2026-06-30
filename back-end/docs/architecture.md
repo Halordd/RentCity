@@ -160,6 +160,7 @@ Prisma models are grouped around:
 - Legal flow: `Contract`
 - Trust and moderation: `Verification`, `AuditLog`
 - App/PWA state: `AppState`, `PushSubscription`
+- Notification outbox: `Notification`
 
 ## External Services To Add Later
 

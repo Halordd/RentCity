@@ -3,6 +3,7 @@ import { BookingStatus, ListingStatus, UserRole } from "@prisma/client";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { PrismaService } from "../../database/prisma.service";
 import { STORAGE_PROVIDER, StorageProvider } from "../../integrations/storage/storage-provider.interface";
+import { NotificationsService } from "../notifications/notifications.service";
 import { AddListingImageDto } from "./dto/add-listing-image.dto";
 import { CreateImageUploadIntentDto } from "./dto/create-image-upload-intent.dto";
 import { CreateOwnerListingDto } from "./dto/create-owner-listing.dto";
@@ -12,7 +13,8 @@ import { UpdateOwnerListingDto } from "./dto/update-owner-listing.dto";
 export class OwnerService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(STORAGE_PROVIDER) private readonly storageProvider: StorageProvider
+    @Inject(STORAGE_PROVIDER) private readonly storageProvider: StorageProvider,
+    private readonly notifications: NotificationsService
   ) {}
 
   async listings(user: AuthenticatedUser) {
@@ -110,10 +112,25 @@ export class OwnerService {
       throw new ForbiddenException("Cannot confirm booking for another owner's listing");
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id },
-      data: { status: BookingStatus.CONFIRMED }
+      data: { status: BookingStatus.CONFIRMED },
+      include: { listing: { select: { id: true, title: true } } }
     });
+
+    await this.notifications.enqueue({
+      userId: booking.tenantId,
+      topic: "booking.confirmed",
+      title: "Lich xem nha da duoc xac nhan",
+      body: `Chu nha da xac nhan lich xem ${updated.listing.title}.`,
+      payload: {
+        bookingId: updated.id,
+        listingId: updated.listing.id,
+        status: updated.status
+      }
+    });
+
+    return updated;
   }
 
   private async assertListingAccess(user: AuthenticatedUser, id: string) {
