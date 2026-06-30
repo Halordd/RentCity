@@ -26,12 +26,14 @@ Current implementation:
 
 - `POST /auth/otp/request`
 - `POST /auth/otp/verify`
+- `POST /auth/refresh`
 - `POST /auth/logout`
 - `GET /me`
 - Stores OTP challenges with hashed codes and expiry.
 - Limits OTP request volume per phone number.
 - Sends OTP through the SMS provider interface.
 - Issues JWT access tokens.
+- Issues hashed, rotating refresh sessions.
 - Provides reusable JWT and role guards.
 
 External adapters still needed:

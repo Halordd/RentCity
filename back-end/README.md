@@ -111,6 +111,7 @@ Copy `.env.example` to `.env`.
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/rentcity?schema=public"
 NODE_ENV="development"
 JWT_SECRET="change-me"
+REFRESH_TOKEN_TTL_DAYS=30
 PORT=4000
 FRONTEND_ORIGINS="http://localhost:4173,http://localhost:4174"
 API_DOCS_ENABLED=true
@@ -123,7 +124,7 @@ Production deployment notes are in `docs/deployment.md`.
 
 ## MVP Modules
 
-- Auth: OTP request/verify, logout, current user.
+- Auth: OTP request/verify, refresh session, logout, current user.
 - Users: tenant, owner, admin role boundaries.
 - Listings: search, detail, owner CRUD, image metadata, admin review.
 - Bookings: availability, create, reschedule, cancel, owner confirm.

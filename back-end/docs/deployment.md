@@ -9,6 +9,7 @@ NODE_ENV=production
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/rentcity?schema=public
 JWT_SECRET=replace-with-a-long-random-secret
 JWT_EXPIRES_IN=7d
+REFRESH_TOKEN_TTL_DAYS=30
 PORT=4000
 FRONTEND_ORIGINS=https://rentcity.vn,https://app.rentcity.vn
 API_DOCS_ENABLED=false

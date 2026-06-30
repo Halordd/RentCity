@@ -12,6 +12,7 @@ test("env validation parses safe defaults", () => {
 
   assert.equal(env.PORT, 4000);
   assert.equal(env.JWT_EXPIRES_IN, "7d");
+  assert.equal(env.REFRESH_TOKEN_TTL_DAYS, 30);
   assert.equal(env.OTP_TTL_SECONDS, 300);
   assert.equal(env.OTP_REQUEST_LIMIT_PER_HOUR, 5);
   assert.equal(env.API_DOCS_ENABLED, true);

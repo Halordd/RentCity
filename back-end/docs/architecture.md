@@ -149,6 +149,7 @@ DTO folders are used for request validation and API boundary typing.
 Prisma models are grouped around:
 
 - Identity: `User`
+- Auth/session lifecycle: `OtpChallenge`, `AuthSession`
 - Rental inventory: `Listing`, `ListingImage`
 - Scheduling: `Booking`
 - Saved homes: `SavedListing`

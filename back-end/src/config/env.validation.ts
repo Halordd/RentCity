@@ -3,6 +3,7 @@ type ValidatedEnv = {
   DATABASE_URL: string;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
+  REFRESH_TOKEN_TTL_DAYS: number;
   PORT: number;
   FRONTEND_ORIGINS: string;
   OTP_TTL_SECONDS: number;
@@ -122,6 +123,7 @@ export function validateEnv(env: Env): ValidatedEnv {
     DATABASE_URL: databaseUrl,
     JWT_SECRET: jwtSecret,
     JWT_EXPIRES_IN: jwtExpiresIn,
+    REFRESH_TOKEN_TTL_DAYS: parsePositiveInteger(env.REFRESH_TOKEN_TTL_DAYS?.trim() || "30", "REFRESH_TOKEN_TTL_DAYS"),
     PORT: parsePort(env.PORT?.trim() || "4000"),
     FRONTEND_ORIGINS: frontendOrigins,
     OTP_TTL_SECONDS: parseSeconds(env.OTP_TTL_SECONDS?.trim() || "300"),

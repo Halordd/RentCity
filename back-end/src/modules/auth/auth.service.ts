@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { randomInt } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 import { PrismaService } from "../../database/prisma.service";
 import { SMS_PROVIDER, SmsProvider } from "../../integrations/sms/sms-provider.interface";
 
@@ -92,6 +92,60 @@ export class AuthService {
       data: { consumedAt: new Date() }
     });
 
+    return this.createAuthResponse(user);
+  }
+
+  async refresh(refreshToken: string) {
+    const parsed = this.parseRefreshToken(refreshToken);
+    const session = await this.prisma.authSession.findUnique({
+      where: { id: parsed.sessionId },
+      include: { user: true }
+    });
+
+    if (!session || session.revokedAt || session.expiresAt <= new Date()) {
+      throw new UnauthorizedException("Refresh token is expired or revoked");
+    }
+
+    const valid = await bcrypt.compare(parsed.secret, session.refreshTokenHash);
+    if (!valid) throw new UnauthorizedException("Invalid refresh token");
+
+    const nextRefreshSecret = this.createRefreshSecret();
+    const refreshTokenHash = await bcrypt.hash(nextRefreshSecret, 10);
+    await this.prisma.authSession.update({
+      where: { id: session.id },
+      data: {
+        refreshTokenHash,
+        lastUsedAt: new Date()
+      }
+    });
+
+    return this.createAuthResponse(session.user, {
+      sessionId: session.id,
+      refreshSecret: nextRefreshSecret,
+      refreshExpiresAt: session.expiresAt
+    });
+  }
+
+  async logout(refreshToken?: string) {
+    if (!refreshToken) return { success: true };
+
+    const parsed = this.parseRefreshToken(refreshToken);
+    await this.prisma.authSession.updateMany({
+      where: {
+        id: parsed.sessionId,
+        revokedAt: null
+      },
+      data: { revokedAt: new Date() }
+    });
+
+    return { success: true };
+  }
+
+  private async createAuthResponse(
+    user: { id: string; phone: string; role: UserRole; fullName: string | null },
+    existingSession?: { sessionId: string; refreshSecret: string; refreshExpiresAt: Date }
+  ) {
+    const session = existingSession ?? (await this.createAuthSession(user.id));
     const accessToken = await this.jwtService.signAsync({
       sub: user.id,
       phone: user.phone,
@@ -100,6 +154,8 @@ export class AuthService {
 
     return {
       accessToken,
+      refreshToken: `${session.sessionId}.${session.refreshSecret}`,
+      refreshExpiresAt: session.refreshExpiresAt.toISOString(),
       tokenType: "Bearer",
       user: {
         id: user.id,
@@ -108,6 +164,36 @@ export class AuthService {
         fullName: user.fullName
       }
     };
+  }
+
+  private async createAuthSession(userId: string) {
+    const refreshSecret = this.createRefreshSecret();
+    const refreshTokenHash = await bcrypt.hash(refreshSecret, 10);
+    const refreshExpiresAt = new Date(Date.now() + this.config.get<number>("REFRESH_TOKEN_TTL_DAYS", 30) * 24 * 60 * 60 * 1000);
+    const session = await this.prisma.authSession.create({
+      data: {
+        userId,
+        refreshTokenHash,
+        expiresAt: refreshExpiresAt
+      }
+    });
+
+    return {
+      sessionId: session.id,
+      refreshSecret,
+      refreshExpiresAt
+    };
+  }
+
+  private createRefreshSecret(): string {
+    return randomBytes(32).toString("base64url");
+  }
+
+  private parseRefreshToken(refreshToken: string): { sessionId: string; secret: string } {
+    const [sessionId, secret] = refreshToken.split(".");
+    if (!sessionId || !secret) throw new UnauthorizedException("Invalid refresh token");
+
+    return { sessionId, secret };
   }
 
   async currentUser(id: string) {

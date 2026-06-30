@@ -47,7 +47,8 @@ OTP verification returns the token. In non-production mode the OTP request respo
 
 - `POST /auth/otp/request` - body: `phone`
 - `POST /auth/otp/verify` - body: `phone`, `code`
-- `POST /auth/logout`
+- `POST /auth/refresh` - body: `refreshToken`
+- `POST /auth/logout` - optional body: `refreshToken`
 - `GET /me` - authenticated
 
 ## Listings

@@ -5,6 +5,7 @@ import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { AuthService } from "./auth.service";
 import { RequestOtpDto } from "./dto/request-otp.dto";
+import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { VerifyOtpDto } from "./dto/verify-otp.dto";
 
 @Controller()
@@ -22,8 +23,13 @@ export class AuthController {
   }
 
   @Post("auth/logout")
-  logout() {
-    return ok({ success: true });
+  async logout(@Body() body: Partial<RefreshTokenDto>) {
+    return ok(await this.authService.logout(body.refreshToken));
+  }
+
+  @Post("auth/refresh")
+  async refresh(@Body() body: RefreshTokenDto) {
+    return ok(await this.authService.refresh(body.refreshToken));
   }
 
   @UseGuards(JwtAuthGuard)

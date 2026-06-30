@@ -85,6 +85,7 @@ model User {
   verifications Verification[]
   auditLogs     AuditLog[]
   disputes      Dispute[]
+  authSessions  AuthSession[]
   appState      AppState?
   pushSubscriptions PushSubscription[]
   sentConversations Conversation[] @relation("TenantConversations")
@@ -101,6 +102,20 @@ model OtpChallenge {
   createdAt  DateTime  @default(now())
 
   @@index([phone, createdAt])
+}
+
+model AuthSession {
+  id               String    @id @default(cuid())
+  userId           String
+  refreshTokenHash String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  lastUsedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt, expiresAt])
 }
 
 model Listing {
