@@ -6,6 +6,7 @@ import type { JwtService } from "@nestjs/jwt";
 import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import type { PrismaService } from "../src/database/prisma.service";
+import type { RateLimitStore } from "../src/integrations/rate-limit/rate-limit-store.interface";
 import type { SmsProvider } from "../src/integrations/sms/sms-provider.interface";
 import { AuthService } from "../src/modules/auth/auth.service";
 
@@ -21,10 +22,21 @@ function createJwtService(token = "access_token"): JwtService {
   } as unknown as JwtService;
 }
 
+function createRateLimitStore(blocked = false): RateLimitStore {
+  return {
+    hit: async (input) => ({
+      key: input.key,
+      limit: input.limit,
+      remaining: blocked ? 0 : input.limit - 1,
+      resetAt: new Date(Date.now() + input.windowSeconds * 1000),
+      blocked
+    })
+  };
+}
+
 test("auth service rate-limits OTP requests per phone number", async () => {
   const prisma = {
     otpChallenge: {
-      count: async () => 5,
       create: async () => {
         throw new Error("OTP should not be created when rate limit is exceeded");
       }
@@ -35,7 +47,7 @@ test("auth service rate-limits OTP requests per phone number", async () => {
       throw new Error("SMS provider should not be called when rate limit is exceeded");
     }
   } as SmsProvider;
-  const service = new AuthService(prisma, {} as JwtService, createConfig({ OTP_REQUEST_LIMIT_PER_HOUR: 5 }), smsProvider);
+  const service = new AuthService(prisma, {} as JwtService, createConfig({ OTP_REQUEST_LIMIT_PER_HOUR: 5 }), smsProvider, createRateLimitStore(true));
 
   await assert.rejects(
     () => service.requestOtp("+84912345678"),
@@ -47,7 +59,6 @@ test("auth service hides dev OTP code in production", async () => {
   let sentOtpPhone: string | undefined;
   const prisma = {
     otpChallenge: {
-      count: async () => 0,
       create: async () => ({ id: "otp_1" })
     }
   } as unknown as PrismaService;
@@ -61,7 +72,8 @@ test("auth service hides dev OTP code in production", async () => {
     prisma,
     {} as JwtService,
     createConfig({ NODE_ENV: "production", OTP_TTL_SECONDS: 300, OTP_REQUEST_LIMIT_PER_HOUR: 5 }),
-    smsProvider
+    smsProvider,
+    createRateLimitStore()
   );
 
   const result = await service.requestOtp("+84912345678");
@@ -97,7 +109,7 @@ test("auth service refreshes access token and rotates refresh secret", async () 
       }
     }
   } as unknown as PrismaService;
-  const service = new AuthService(prisma, createJwtService(), createConfig({}), {} as SmsProvider);
+  const service = new AuthService(prisma, createJwtService(), createConfig({}), {} as SmsProvider, createRateLimitStore());
 
   const result = await service.refresh("session_1.old-secret");
 
@@ -118,7 +130,7 @@ test("auth service logout revokes refresh session", async () => {
       }
     }
   } as unknown as PrismaService;
-  const service = new AuthService(prisma, createJwtService(), createConfig({}), {} as SmsProvider);
+  const service = new AuthService(prisma, createJwtService(), createConfig({}), {} as SmsProvider, createRateLimitStore());
 
   const result = await service.logout("session_1.secret");
 

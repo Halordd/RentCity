@@ -5,6 +5,7 @@ import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { randomBytes, randomInt } from "node:crypto";
 import { PrismaService } from "../../database/prisma.service";
+import { RATE_LIMIT_STORE, RateLimitStore } from "../../integrations/rate-limit/rate-limit-store.interface";
 import { SMS_PROVIDER, SmsProvider } from "../../integrations/sms/sms-provider.interface";
 
 @Injectable()
@@ -13,20 +14,20 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
-    @Inject(SMS_PROVIDER) private readonly smsProvider: SmsProvider
+    @Inject(SMS_PROVIDER) private readonly smsProvider: SmsProvider,
+    @Inject(RATE_LIMIT_STORE) private readonly rateLimitStore: RateLimitStore
   ) {}
 
   async requestOtp(phone: string) {
     const ttlSeconds = this.config.get<number>("OTP_TTL_SECONDS", 300);
     const hourlyLimit = this.config.get<number>("OTP_REQUEST_LIMIT_PER_HOUR", 5);
-    const recentRequests = await this.prisma.otpChallenge.count({
-      where: {
-        phone,
-        createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) }
-      }
+    const rateLimit = await this.rateLimitStore.hit({
+      key: `otp:request:${phone}`,
+      limit: hourlyLimit,
+      windowSeconds: 60 * 60
     });
 
-    if (recentRequests >= hourlyLimit) {
+    if (rateLimit.blocked) {
       throw new HttpException("OTP request limit exceeded. Please try again later.", HttpStatus.TOO_MANY_REQUESTS);
     }
 

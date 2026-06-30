@@ -16,7 +16,7 @@ This means:
 - Each business domain has its own module.
 - Each module owns its controller and service.
 - Shared infrastructure such as Prisma is isolated under `src/database`.
-- Provider boundaries such as SMS, payment, and storage live under `src/integrations`.
+- Provider boundaries such as SMS, payment, storage, and rate limiting live under `src/integrations`.
 - The code can later be split into independent services if needed.
 
 ## Framework And Runtime
@@ -115,6 +115,7 @@ src/
     prisma.service.ts
   integrations/
     payments/
+    rate-limit/
     sms/
     storage/
   modules/

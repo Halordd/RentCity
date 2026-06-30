@@ -1,6 +1,10 @@
 import { Module } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { LocalPaymentGateway } from "./payments/local-payment.gateway";
 import { PAYMENT_GATEWAY } from "./payments/payment-gateway.interface";
+import { MemoryRateLimitStore } from "./rate-limit/memory-rate-limit.store";
+import { RATE_LIMIT_STORE } from "./rate-limit/rate-limit-store.interface";
+import { RedisRateLimitStore } from "./rate-limit/redis-rate-limit.store";
 import { LocalSmsProvider } from "./sms/local-sms.provider";
 import { SMS_PROVIDER } from "./sms/sms-provider.interface";
 import { LocalStorageProvider } from "./storage/local-storage.provider";
@@ -11,6 +15,8 @@ import { STORAGE_PROVIDER } from "./storage/storage-provider.interface";
     LocalSmsProvider,
     LocalPaymentGateway,
     LocalStorageProvider,
+    MemoryRateLimitStore,
+    RedisRateLimitStore,
     {
       provide: SMS_PROVIDER,
       useExisting: LocalSmsProvider
@@ -22,8 +28,14 @@ import { STORAGE_PROVIDER } from "./storage/storage-provider.interface";
     {
       provide: STORAGE_PROVIDER,
       useExisting: LocalStorageProvider
+    },
+    {
+      provide: RATE_LIMIT_STORE,
+      inject: [ConfigService, RedisRateLimitStore, MemoryRateLimitStore],
+      useFactory: (config: ConfigService, redisStore: RedisRateLimitStore, memoryStore: MemoryRateLimitStore) =>
+        config.get<string>("REDIS_URL") ? redisStore : memoryStore
     }
   ],
-  exports: [SMS_PROVIDER, PAYMENT_GATEWAY, STORAGE_PROVIDER]
+  exports: [SMS_PROVIDER, PAYMENT_GATEWAY, STORAGE_PROVIDER, RATE_LIMIT_STORE]
 })
 export class IntegrationsModule {}

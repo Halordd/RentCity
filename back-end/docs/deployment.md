@@ -77,6 +77,7 @@ docker run --env-file .env rentcity-backend npx prisma migrate deploy
 - Confirm error logs include the same request id returned in `x-request-id`.
 - Keep `/api-docs` disabled in production unless the API contract should be public.
 - Configure frontend apps with the deployed API base URL.
+- Configure Redis before accepting OTP traffic so request limits are shared across instances.
 - Configure SMS, storage, payment, email, and push adapters before accepting real transactions.
 
 ## External Providers Still Needed

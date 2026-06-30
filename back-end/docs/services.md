@@ -8,7 +8,7 @@ This document describes the backend services/modules and what each one is respon
 | --- | --- | --- | --- |
 | `health` | `HealthController` | `PrismaService` | Liveness and database readiness checks |
 | `auth` | `AuthController` | `AuthService` | OTP request/verify, logout, current user boundary |
-| `integrations` | none | provider interfaces | External service boundaries such as SMS, payment, and storage |
+| `integrations` | none | provider interfaces | External service boundaries such as SMS, payment, storage, and rate limiting |
 | `users` | `UsersController` | `UsersService` | Tenant/owner/admin profile data |
 | `listings` | `ListingsController` | `ListingsService` | Public listing search and listing detail |
 | `bookings` | `BookingsController` | `BookingsService` | Availability, booking creation, reschedule, cancel |
@@ -30,7 +30,7 @@ Current implementation:
 - `POST /auth/logout`
 - `GET /me`
 - Stores OTP challenges with hashed codes and expiry.
-- Limits OTP request volume per phone number.
+- Limits OTP request volume per phone number through a rate-limit store.
 - Sends OTP through the SMS provider interface.
 - Issues JWT access tokens.
 - Issues hashed, rotating refresh sessions.
@@ -39,7 +39,7 @@ Current implementation:
 External adapters still needed:
 
 - SMS OTP delivery provider.
-- Rate limit store and refresh-token revocation if long sessions are required.
+- SMS OTP delivery provider.
 
 ## Users Service
 
@@ -216,6 +216,7 @@ Current implementation:
 
 - PostgreSQL through Prisma.
 - Redis container available through Docker Compose.
+- Redis-backed rate-limit store with memory fallback for local/test environments.
 - Environment validation.
 - Dockerfile for runtime image.
 - Prisma migration and deployment command.
@@ -227,7 +228,7 @@ Current implementation:
 
 Infrastructure adapters still needed:
 
-- Redis for OTP TTL, rate limits, queues, and realtime fanout.
+- Redis for OTP TTL, queues, and realtime fanout.
 - Object storage for listing images, verification documents, receipts, and contracts.
 - Monitoring/logging.
 - Migration workflow.

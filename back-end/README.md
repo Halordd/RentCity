@@ -19,6 +19,7 @@ Backend for the RentCity rental platform. This service is organized as a modular
 - Deployment: Dockerfile, Prisma migrations, env validation
 - Operations: request ids, consistent error payloads, liveness/readiness checks
 - API contract: OpenAPI at `/api-docs` and `/api-docs.json`
+- Rate limiting: Redis-backed OTP request limits when `REDIS_URL` is configured
 
 ## Backend Architecture
 
@@ -26,7 +27,7 @@ RentCity backend is currently a modular monolith. That means it is one deployabl
 
 - `controller`: receives HTTP requests and maps routes.
 - `service`: owns business logic for that module.
-- `integrations`: owns external provider boundaries such as SMS, payment, and storage.
+- `integrations`: owns external provider boundaries such as SMS, payment, storage, and rate limiting.
 - `database`: Prisma access layer.
 - `prisma/schema.prisma`: source of truth for relational data models.
 - `docs/`: API, architecture, and service handoff notes.
@@ -118,6 +119,7 @@ API_DOCS_ENABLED=true
 SMS_PROVIDER="local"
 PAYMENT_PROVIDER="local"
 STORAGE_PROVIDER="local"
+REDIS_URL="redis://localhost:6379"
 ```
 
 Production deployment notes are in `docs/deployment.md`.
