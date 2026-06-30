@@ -85,6 +85,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 - `POST /conversations` - authenticated, creates or reuses tenant/owner/listing thread
 - `GET /conversations/:id/messages` - participant only
 - `POST /conversations/:id/messages` - participant only
+- `PATCH /conversations/:id/read` - participant only
 
 ## Payments
 

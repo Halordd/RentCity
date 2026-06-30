@@ -131,7 +131,7 @@ Production deployment notes are in `docs/deployment.md`.
 - Listings: search, detail, owner CRUD, image metadata, admin review.
 - Bookings: availability, create, reschedule, cancel, owner confirm.
 - Saved homes: save, unsave, list saved homes.
-- Messages: conversations and basic message creation.
+- Messages: conversations, unread counts, read state, and message notifications.
 - Payments: deposit request, checkout intent, payment lookup, signed and idempotent webhook boundary.
 - Contracts: draft contract creation and lookup.
 - Owner: portfolio, booking queue, listing management.

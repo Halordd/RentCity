@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ok } from "../../common/api-response";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
@@ -30,5 +30,10 @@ export class MessagesController {
   @Post(":id/messages")
   async create(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string, @Body() body: CreateMessageDto) {
     return ok(await this.messagesService.create(user, id, body.body));
+  }
+
+  @Patch(":id/read")
+  async markRead(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return ok(await this.messagesService.markRead(user, id));
   }
 }

@@ -39,7 +39,6 @@ Current implementation:
 External adapters still needed:
 
 - SMS OTP delivery provider.
-- SMS OTP delivery provider.
 
 ## Users Service
 
@@ -103,9 +102,12 @@ Current implementation:
 - `POST /conversations`
 - `GET /conversations/:id/messages`
 - `POST /conversations/:id/messages`
+- `PATCH /conversations/:id/read`
 - Stores conversations and messages.
 - Enforces tenant/owner participant access.
 - Reuses an existing listing conversation when available.
+- Returns unread counts for conversation lists.
+- Enqueues notification outbox entries for new messages.
 
 External adapters still needed:
 
