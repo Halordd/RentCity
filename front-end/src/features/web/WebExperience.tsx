@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { isApiConfigured } from "../../api/httpClient";
 import { assets } from "../../data";
 import { useRentCity } from "../../app/useRentCity";
@@ -6,6 +6,7 @@ import { authService } from "../../services/auth.service";
 import { createBooking, createBookingRemote } from "../../services/bookings.service";
 import { listingsService } from "../../services/listings.service";
 import { messagesService } from "../../services/messages.service";
+import { ownerService, type OwnerDashboard } from "../../services/owner.service";
 import { money } from "../../utils";
 import { EmptyState, Footer, ListingCard, ListingTile, MapPanel, RouteButton, SearchForm, WebTopbar } from "../../components/ui";
 import type { NavigateTo, RoutedScreenProps } from "../../types";
@@ -277,7 +278,37 @@ function PaymentsPage() {
 }
 
 function OwnerPage({ navigate }: NavigateProps) {
-  return <main className="page"><span className="eyebrow">Chủ nhà</span><h1 style={{ fontSize: 44 }}>Quản lý danh mục cho thuê</h1><section className="section stat-grid">{[["Nhà đang quản lý", "12", "8 tin đang hiển thị"], ["Lịch xem tuần này", "24", "84% xác nhận"], ["Doanh thu tháng", "128tr", "+18% so với tháng trước"], ["Cần xử lý", "6", "Hồ sơ và tin nhắn"]].map(([label, value, body]) => <div className="stat" key={label}><span>{label}</span><strong>{value}</strong><p className="subtle">{body}</p></div>)}</section><section className="section grid cols-2"><div className="card pad"><h3>Pipeline khách thuê</h3><div className="workflow" style={{ marginTop: 16 }}>{["Mới liên hệ", "Đặt lịch xem", "Đang thương lượng", "Chờ hợp đồng"].map((step, index) => <div className="workflow-step" key={step}><span className="num">{index + 1}</span><div><strong>{step}</strong><p className="subtle">{[8, 5, 3, 2][index]} khách</p></div></div>)}</div></div><div className="card pad"><h3>Công cụ chủ nhà đang bật</h3><p className="subtle" style={{ marginTop: 8 }}>Theo dõi lịch xem, phản hồi khách thuê, nhắc cọc và chuẩn bị hợp đồng cho nhà đang quản lý.</p><div className="actions" style={{ marginTop: 18 }}><RouteButton to="/web/messages" navigate={navigate}>Xem trao đổi</RouteButton><RouteButton className="btn secondary" to="/web/post" navigate={navigate}>Đăng tin mới</RouteButton></div></div></section></main>;
+  const { state, notify } = useRentCity();
+  const [dashboard, setDashboard] = useState<OwnerDashboard | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadDashboard() {
+      if (!isApiConfigured() || !state.auth || !["OWNER", "ADMIN"].includes(state.auth.user.role)) return;
+      try {
+        const result = await ownerService.dashboardRemote();
+        if (!cancelled) setDashboard(result);
+      } catch {
+        if (!cancelled) notify("Chưa tải được dashboard chủ nhà từ backend.");
+      }
+    }
+    void loadDashboard();
+    return () => {
+      cancelled = true;
+    };
+  }, [notify, state.auth]);
+
+  const metrics = dashboard
+    ? [
+        ["Nhà đang quản lý", String(dashboard.metrics.managedListings), `${dashboard.metrics.publishedListings} tin đang hiển thị`],
+        ["Lịch xem chờ xử lý", String(dashboard.metrics.pendingBookings), `${dashboard.metrics.confirmedBookings} lịch đã xác nhận`],
+        ["Doanh thu tháng", `${Number((dashboard.metrics.monthlyRevenue / 1000000).toFixed(1)).toLocaleString("vi-VN")}tr`, "Đã ghi nhận thanh toán"],
+        ["Cần xử lý", String(dashboard.metrics.needsAction), "Lịch xem và tin đăng"]
+      ]
+    : [["Nhà đang quản lý", "12", "8 tin đang hiển thị"], ["Lịch xem tuần này", "24", "84% xác nhận"], ["Doanh thu tháng", "128tr", "+18% so với tháng trước"], ["Cần xử lý", "6", "Hồ sơ và tin nhắn"]];
+  const pipeline = dashboard?.pipeline.map((item) => [item.label, item.count]) ?? [["Mới liên hệ", 8], ["Đặt lịch xem", 5], ["Đang thương lượng", 3], ["Chờ hợp đồng", 2]];
+
+  return <main className="page"><span className="eyebrow">Chủ nhà</span><h1 style={{ fontSize: 44 }}>Quản lý danh mục cho thuê</h1><section className="section stat-grid">{metrics.map(([label, value, body]) => <div className="stat" key={label}><span>{label}</span><strong>{value}</strong><p className="subtle">{body}</p></div>)}</section><section className="section grid cols-2"><div className="card pad"><h3>Pipeline khách thuê</h3><div className="workflow" style={{ marginTop: 16 }}>{pipeline.map(([step, count], index) => <div className="workflow-step" key={step}><span className="num">{index + 1}</span><div><strong>{step}</strong><p className="subtle">{count} khách</p></div></div>)}</div></div><div className="card pad"><h3>Công cụ chủ nhà đang bật</h3><p className="subtle" style={{ marginTop: 8 }}>Theo dõi lịch xem, phản hồi khách thuê, nhắc cọc và chuẩn bị hợp đồng cho nhà đang quản lý.</p><div className="actions" style={{ marginTop: 18 }}><RouteButton to="/web/messages" navigate={navigate}>Xem trao đổi</RouteButton><RouteButton className="btn secondary" to="/web/post" navigate={navigate}>Đăng tin mới</RouteButton></div></div></section></main>;
 }
 
 function PostPage({ navigate }: NavigateProps) {

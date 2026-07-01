@@ -160,17 +160,17 @@ Các flow đã có đường API:
 - Public listings search/detail.
 - Saved listings sync/save/remove.
 - Booking create/reschedule/cancel.
+- Booking history sync through `GET /me/bookings`.
 - Messages conversation/messages/send/read.
 - Notifications list/read.
-- Admin metrics, verification queue, disputes, audit logs.
+- Owner dashboard metrics/pipeline through `GET /owner/dashboard`.
+- Admin metrics, listing review queue, verification queue, disputes, audit logs.
 
 Các phần vẫn cần backend/API bổ sung để frontend nối hoàn toàn:
 
-- `GET /me/bookings` cho lịch xem của tenant.
 - Payment UI gọi `POST /payments/deposits` và mở checkout thật.
 - Contract UI gọi `POST /contracts`, `GET /contracts/:id`.
-- Owner dashboard API chi tiết cho pipeline, metrics và automation.
-- Admin listing review queue endpoint trả danh sách tin đang chờ QA.
+- Owner dashboard API chi tiết hơn cho automation rules, tasks và response SLA.
 
 Chi tiết endpoint BE cần làm nằm ở:
 

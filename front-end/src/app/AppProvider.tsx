@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { authSessionStore, isApiConfigured } from "../api/httpClient";
 import { listings } from "../data";
+import { bookingsService } from "../services/bookings.service";
 import { listingsService } from "../services/listings.service";
 import { messagesService } from "../services/messages.service";
 import { notificationsService } from "../services/notifications.service";
@@ -106,13 +107,15 @@ export function AppProvider({ children }: ChildrenProps) {
         const session = authSessionStore.read();
         if (session) {
           dispatch({ type: "auth/set", payload: session });
-          const [savedIds, notifications, conversations] = await Promise.all([
+          const [savedIds, bookings, notifications, conversations] = await Promise.all([
             savedListingsService.idsRemote().catch(() => null),
+            bookingsService.myBookingsRemote().catch(() => null),
             notificationsService.listRemote().catch(() => null),
             messagesService.conversationsRemote().catch(() => null)
           ]);
           if (cancelled) return;
           if (savedIds) dispatch({ type: "saved/set", payload: savedIds });
+          if (bookings) dispatch({ type: "bookings/set", payload: bookings });
           if (notifications) dispatch({ type: "notifications/set", payload: notifications });
           const firstConversation = conversations?.[0];
           if (firstConversation) {

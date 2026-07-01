@@ -159,8 +159,8 @@ PWA:
 - Frontend hiện dùng React + TypeScript, state tổng nằm trong `src/app/AppProvider.tsx`.
 - Shared contracts nằm trong `src/types.ts`; backend nên map response theo các model `Listing`, `Booking`, `Message`, `AppState`.
 - API client nằm ở `src/api/httpClient.ts` và đọc `VITE_API_BASE_URL`.
-- Đã có API service cho listing, booking, saved homes, messages, notifications, admin và auth OTP.
-- Frontend vẫn cần bổ sung service cho payment/contract/owner dashboard khi backend endpoint chi tiết sẵn sàng.
+- Đã có API service cho listing, booking, booking history, saved homes, messages, notifications, owner dashboard, admin queues và auth OTP.
+- Frontend vẫn cần bổ sung service cho payment/contract và owner automation khi backend endpoint chi tiết sẵn sàng.
 - Frontend route hiện dùng React Router path routing, production server cần fallback về `index.html`:
   - `/web`
   - `/web/search`

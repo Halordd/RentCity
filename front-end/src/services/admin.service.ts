@@ -2,6 +2,19 @@ import { adminRows } from "../data";
 import { http } from "../api/httpClient";
 import type { AdminRows, DataRow } from "../types";
 
+interface AdminListingQueueItem {
+  title: string;
+  status: string;
+  price: number;
+  owner?: { fullName?: string | null; phone?: string | null; status?: string };
+  images?: Array<{ url: string }>;
+}
+
+function compactVnd(value: number): string {
+  if (value >= 1000000) return `${Number((value / 1000000).toFixed(1)).toLocaleString("vi-VN")}tr`;
+  return value.toLocaleString("vi-VN");
+}
+
 export const adminService: {
   rows: AdminRows;
   auditRows: DataRow[];
@@ -21,8 +34,9 @@ export const adminService: {
     ["INV-0526", "18/05", "1.990.000đ", "Đã xuất hóa đơn"]
   ],
   async rowsRemote() {
-    const [metrics, verifications, disputes, auditLogs] = await Promise.all([
+    const [metrics, listingQueue, verifications, disputes, auditLogs] = await Promise.all([
       http.get<Record<string, number>>("/admin/metrics"),
+      http.get<{ items: AdminListingQueueItem[] }>("/admin/listings"),
       http.get<{ items: Array<{ owner?: { fullName?: string | null; phone?: string | null }; status: string; note?: string | null }> }>("/admin/verifications"),
       http.get<{ items: Array<{ id: string; title: string; status: string; createdAt?: string }> }>("/admin/disputes"),
       http.get<{ items: Array<{ createdAt: string; actor?: { fullName?: string | null; phone?: string | null }; action: string; target: string }> }>(
@@ -32,7 +46,14 @@ export const adminService: {
 
     return {
       rows: {
-        listings: adminRows.listings,
+        listings: listingQueue.items.length
+          ? listingQueue.items.map((item) => [
+              item.title,
+              item.status,
+              compactVnd(item.price),
+              item.owner?.status || item.owner?.fullName || item.owner?.phone || "Owner"
+            ])
+          : adminRows.listings,
         verification: verifications.items.map((item) => [
           item.owner?.fullName || item.owner?.phone || "Owner",
           item.note || "Ho so xac minh",

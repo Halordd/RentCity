@@ -32,6 +32,10 @@ export async function createBookingRemote({ listingId, date, time, note }: Creat
 export const bookingsService = {
   createBooking,
   createBookingRemote,
+  async myBookingsRemote(): Promise<Booking[]> {
+    const result = await http.get<{ items: ApiBooking[] }>("/me/bookings");
+    return result.items.map(mapApiBooking);
+  },
   availabilityRemote(listingId: string): Promise<{ listingId: string; slots: Array<{ date: string; time: string; available: boolean }> }> {
     return http.get(`/listings/${listingId}/availability`);
   },
