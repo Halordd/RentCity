@@ -1,10 +1,12 @@
 import { adminRows } from "../data";
+import { http } from "../api/httpClient";
 import type { AdminRows, DataRow } from "../types";
 
 export const adminService: {
   rows: AdminRows;
   auditRows: DataRow[];
   financeRows: DataRow[];
+  rowsRemote: () => Promise<{ rows: AdminRows; auditRows: DataRow[]; financeRows: DataRow[]; metrics: DataRow[] }>;
 } = {
   rows: adminRows,
   auditRows: [
@@ -17,5 +19,36 @@ export const adminService: {
     ["DEP-2606", "18/06", "5.800.000đ", "Chờ đối soát"],
     ["REF-102", "18/06", "2.000.000đ", "Cần duyệt hoàn"],
     ["INV-0526", "18/05", "1.990.000đ", "Đã xuất hóa đơn"]
-  ]
+  ],
+  async rowsRemote() {
+    const [metrics, verifications, disputes, auditLogs] = await Promise.all([
+      http.get<Record<string, number>>("/admin/metrics"),
+      http.get<{ items: Array<{ owner?: { fullName?: string | null; phone?: string | null }; status: string; note?: string | null }> }>("/admin/verifications"),
+      http.get<{ items: Array<{ id: string; title: string; status: string; createdAt?: string }> }>("/admin/disputes"),
+      http.get<{ items: Array<{ createdAt: string; actor?: { fullName?: string | null; phone?: string | null }; action: string; target: string }> }>(
+        "/admin/audit-logs"
+      )
+    ]);
+
+    return {
+      rows: {
+        listings: adminRows.listings,
+        verification: verifications.items.map((item) => [
+          item.owner?.fullName || item.owner?.phone || "Owner",
+          item.note || "Ho so xac minh",
+          item.status,
+          item.status === "PENDING" ? "Can duyet" : "Da xu ly"
+        ]),
+        disputes: disputes.items.map((item) => [item.id, item.title, item.createdAt ? new Date(item.createdAt).toLocaleDateString("vi-VN") : "-", item.status])
+      },
+      auditRows: auditLogs.items.map((item) => [
+        new Date(item.createdAt).toLocaleString("vi-VN"),
+        item.actor?.fullName || item.actor?.phone || "System",
+        item.action,
+        item.target
+      ]),
+      financeRows: this.financeRows,
+      metrics: Object.entries(metrics).map(([key, value]) => [key, String(value)])
+    };
+  }
 };

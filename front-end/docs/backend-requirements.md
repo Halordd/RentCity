@@ -1,6 +1,6 @@
 # RentCity Backend Requirements
 
-Tài liệu này liệt kê phần backend cần làm để nối với frontend RentCity. Frontend hiện tại là static app, không có backend, và state tạm thời đang nằm trong `localStorage`.
+Tài liệu này liệt kê phần backend cần làm để nối với frontend RentCity. Frontend hiện đã có API client/service layer đọc `VITE_API_BASE_URL`, tự gắn bearer token, thử refresh token khi gặp `401`, và vẫn giữ fallback mock/localStorage khi backend chưa bật.
 
 ## 1. Auth, User, Role
 
@@ -156,14 +156,11 @@ PWA:
 
 ## 13. Frontend Integration Notes
 
-- Frontend hiện dùng React + TypeScript, state tạm nằm trong `src/app/AppProvider.tsx`.
+- Frontend hiện dùng React + TypeScript, state tổng nằm trong `src/app/AppProvider.tsx`.
 - Shared contracts nằm trong `src/types.ts`; backend nên map response theo các model `Listing`, `Booking`, `Message`, `AppState`.
-- API client placeholder nằm ở `src/api/httpClient.ts` và đọc `VITE_API_BASE_URL`.
-- Khi có BE, thay mock reads trong service layer bằng API calls:
-  - Listing search/detail/saved: `src/services/listings.service.ts`.
-  - Booking create/reschedule/cancel: `src/services/bookings.service.ts`.
-  - Admin rows/metrics/actions: `src/services/admin.service.ts`.
-  - User state, messages, payment, OTP: tách tiếp thành `user.service.ts`, `messages.service.ts`, `payments.service.ts`, `auth.service.ts`.
+- API client nằm ở `src/api/httpClient.ts` và đọc `VITE_API_BASE_URL`.
+- Đã có API service cho listing, booking, saved homes, messages, notifications, admin và auth OTP.
+- Frontend vẫn cần bổ sung service cho payment/contract/owner dashboard khi backend endpoint chi tiết sẵn sàng.
 - Frontend route hiện dùng React Router path routing, production server cần fallback về `index.html`:
   - `/web`
   - `/web/search`

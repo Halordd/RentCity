@@ -47,6 +47,7 @@ export interface Listing {
   available: string;
   score: number;
   coordinates: string;
+  ownerId?: string;
 }
 
 export interface Booking {
@@ -63,23 +64,60 @@ export interface Message {
 }
 
 export type PaymentState = "ready" | "success" | "failed";
+export type ApiMode = "mock" | "remote";
+export type ApiStatus = "idle" | "syncing" | "ready" | "error";
+
+export interface UserProfile {
+  id: string;
+  phone: string;
+  email?: string | null;
+  fullName?: string | null;
+  role: "TENANT" | "OWNER" | "ADMIN" | string;
+  status?: string;
+  preferredArea?: string | null;
+}
+
+export interface AuthSession {
+  accessToken: string;
+  refreshToken: string;
+  refreshExpiresAt: string;
+  tokenType: string;
+  user: UserProfile;
+}
+
+export interface ApiState {
+  mode: ApiMode;
+  status: ApiStatus;
+  message?: string;
+}
 
 export interface AppState {
   filters: ListingFilters;
+  listings: Listing[];
   saved: string[];
   bookings: Booking[];
   messages: Message[];
   notifications: string[];
   lastPayment: PaymentState;
+  activeConversationId?: string;
+  api: ApiState;
+  auth: AuthSession | null;
 }
 
 export type AppAction =
   | { type: "filters/set"; payload: ListingFilters }
+  | { type: "listings/set"; payload: Listing[] }
+  | { type: "saved/set"; payload: string[] }
   | { type: "saved/toggle"; payload: string }
+  | { type: "bookings/set"; payload: Booking[] }
   | { type: "booking/add"; payload: Booking; meta?: { listingTitle?: string } }
+  | { type: "messages/set"; payload: Message[]; meta?: { conversationId?: string } }
   | { type: "message/add"; payload: string }
+  | { type: "notifications/set"; payload: string[] }
   | { type: "payment/set"; payload: PaymentState }
-  | { type: "otp/send" };
+  | { type: "otp/send" }
+  | { type: "auth/set"; payload: AuthSession | null }
+  | { type: "api/set"; payload: ApiState };
 
 export interface RentCityContextValue {
   state: AppState;

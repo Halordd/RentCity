@@ -1,8 +1,11 @@
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { isApiConfigured } from "../../api/httpClient";
 import { assets } from "../../data";
 import { useRentCity } from "../../app/useRentCity";
-import { createBooking } from "../../services/bookings.service";
+import { authService } from "../../services/auth.service";
+import { createBooking, createBookingRemote } from "../../services/bookings.service";
 import { listingsService } from "../../services/listings.service";
+import { messagesService } from "../../services/messages.service";
 import { money } from "../../utils";
 import { EmptyState, Footer, ListingCard, ListingTile, MapPanel, RouteButton, SearchForm, WebTopbar } from "../../components/ui";
 import type { NavigateTo, RoutedScreenProps } from "../../types";
@@ -39,6 +42,7 @@ export function WebExperience({ route, navigate }: RoutedScreenProps) {
 }
 
 function HomePage({ navigate }: NavigateProps) {
+  const { state } = useRentCity();
   return (
     <main className="page">
       <section className="hero">
@@ -70,7 +74,7 @@ function HomePage({ navigate }: NavigateProps) {
           </div>
           <RouteButton className="btn secondary" to="/web/search" navigate={navigate}>Xem tất cả</RouteButton>
         </div>
-        <div className="grid cols-3">{listingsService.featured().map((item) => <ListingTile item={item} key={item.id} navigate={navigate} />)}</div>
+        <div className="grid cols-3">{listingsService.featured(state.listings).map((item) => <ListingTile item={item} key={item.id} navigate={navigate} />)}</div>
       </section>
       <section className="section grid cols-3">
         {[
@@ -91,7 +95,7 @@ function HomePage({ navigate }: NavigateProps) {
 
 function SearchPage({ navigate }: NavigateProps) {
   const { state } = useRentCity();
-  const results = listingsService.list(state.filters);
+  const results = listingsService.list(state.filters, state.listings);
   return (
     <main className="page">
       <span className="eyebrow">Tìm thuê</span>
@@ -112,8 +116,8 @@ function SearchPage({ navigate }: NavigateProps) {
 }
 
 function DetailPage({ id, navigate }: ListingPageProps) {
-  const item = listingsService.getById(id);
   const { state, dispatch, notify } = useRentCity();
+  const item = listingsService.getById(id, state.listings);
   return (
     <main className="page">
       <RouteButton className="btn secondary" to="/web/search" navigate={navigate}>Quay lại kết quả</RouteButton>
@@ -160,14 +164,26 @@ function DetailPage({ id, navigate }: ListingPageProps) {
 }
 
 function BookingPage({ id, navigate }: ListingPageProps) {
-  const item = listingsService.getById(id);
-  const { dispatch, notify } = useRentCity();
-  function submit(event: FormEvent<HTMLFormElement>) {
+  const { state, dispatch, notify } = useRentCity();
+  const item = listingsService.getById(id, state.listings);
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    dispatch({ type: "booking/add", payload: createBooking({ listingId: item.id, date: data.get("date"), time: data.get("time") }), meta: { listingTitle: item.title } });
-    notify("Đã tạo lịch xem.");
-    navigate("/web/payments");
+    if (isApiConfigured() && !state.auth) {
+      notify("Vui lòng đăng nhập OTP trước khi đặt lịch.");
+      navigate("/web/account");
+      return;
+    }
+    try {
+      const booking = isApiConfigured()
+        ? await createBookingRemote({ listingId: item.id, date: data.get("date"), time: data.get("time"), note: data.get("note") })
+        : createBooking({ listingId: item.id, date: data.get("date"), time: data.get("time"), note: data.get("note") });
+      dispatch({ type: "booking/add", payload: booking, meta: { listingTitle: item.title } });
+      notify("Đã tạo lịch xem.");
+      navigate("/web/payments");
+    } catch {
+      notify("Chưa tạo được lịch xem từ backend.");
+    }
   }
   return (
     <main className="page">
@@ -203,21 +219,30 @@ function BookingPage({ id, navigate }: ListingPageProps) {
 
 function SavedPage({ navigate }: NavigateProps) {
   const { state } = useRentCity();
-  const savedItems = listingsService.saved(state.saved);
+  const savedItems = listingsService.saved(state.saved, state.listings);
   return <main className="page"><span className="eyebrow">Wishlist</span><h1 style={{ fontSize: 44 }}>Nhà đã lưu</h1><section className="section grid">{savedItems.length ? savedItems.map((item) => <ListingCard key={item.id} item={item} navigate={navigate} />) : <EmptyState title="Bạn chưa lưu nhà nào" body="Khi thấy nhà phù hợp, bấm lưu để so sánh sau." />}</section></main>;
 }
 
 function MessagesPage() {
   const { state, dispatch, notify } = useRentCity();
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const input = event.currentTarget.elements.namedItem("message") as HTMLInputElement | null;
     if (!input) return;
     const body = input.value.trim();
     if (!body) return;
-    dispatch({ type: "message/add", payload: body });
-    notify("Đã gửi tin nhắn.");
-    input.value = "";
+    try {
+      if (isApiConfigured() && state.activeConversationId && state.auth) {
+        const message = await messagesService.sendRemote(state.activeConversationId, body, state.auth.user.id);
+        dispatch({ type: "messages/set", payload: [...state.messages, message], meta: { conversationId: state.activeConversationId } });
+      } else {
+        dispatch({ type: "message/add", payload: body });
+      }
+      notify("Đã gửi tin nhắn.");
+      input.value = "";
+    } catch {
+      notify("Chưa gửi được tin nhắn.");
+    }
   }
   return (
     <main className="page">
@@ -263,5 +288,39 @@ function PostPage({ navigate }: NavigateProps) {
 
 function AccountPage({ navigate }: NavigateProps) {
   const { state, dispatch, notify } = useRentCity();
-  return <main className="page"><span className="eyebrow">Tài khoản</span><h1 style={{ fontSize: 44 }}>Thông tin cá nhân</h1><section className="section grid cols-2"><div className="card pad"><h3>Đăng nhập OTP</h3><label className="field" style={{ marginTop: 16 }}><span>Số điện thoại</span><input defaultValue="+84 912 345 678" /></label><div className="actions" style={{ marginTop: 18 }}><button className="btn" onClick={() => { dispatch({ type: "otp/send" }); notify("Đã gửi OTP demo."); }}>Gửi mã OTP</button><RouteButton className="btn secondary" to="/web/saved" navigate={navigate}>Xem nhà đã lưu</RouteButton></div></div><div className="card pad"><h3>Thông báo</h3><div className="grid" style={{ marginTop: 14 }}>{state.notifications.map((item) => <p className="card pad subtle" key={item}>{item}</p>)}</div></div></section></main>;
+  const [phone, setPhone] = useState(state.auth?.user.phone || "+84912345678");
+  const [code, setCode] = useState("");
+
+  async function requestOtp() {
+    if (!isApiConfigured()) {
+      dispatch({ type: "otp/send" });
+      notify("Đã gửi OTP demo.");
+      return;
+    }
+    try {
+      const result = await authService.requestOtp(phone);
+      notify(result.devCode ? `OTP dev: ${result.devCode}` : "Đã gửi OTP.");
+    } catch {
+      notify("Chưa gửi được OTP.");
+    }
+  }
+
+  async function verifyOtp() {
+    if (!isApiConfigured()) return;
+    try {
+      const session = await authService.verifyOtp(phone, code);
+      dispatch({ type: "auth/set", payload: session });
+      notify("Đăng nhập thành công.");
+    } catch {
+      notify("OTP không hợp lệ hoặc đã hết hạn.");
+    }
+  }
+
+  async function logout() {
+    if (isApiConfigured()) await authService.logout(state.auth?.refreshToken).catch(() => undefined);
+    dispatch({ type: "auth/set", payload: null });
+    notify("Đã đăng xuất.");
+  }
+
+  return <main className="page"><span className="eyebrow">Tài khoản</span><h1 style={{ fontSize: 44 }}>Thông tin cá nhân</h1><section className="section grid cols-2"><div className="card pad"><h3>Đăng nhập OTP</h3><label className="field" style={{ marginTop: 16 }}><span>Số điện thoại</span><input value={phone} onChange={(event) => setPhone(event.target.value)} /></label><label className="field" style={{ marginTop: 12 }}><span>Mã OTP</span><input value={code} onChange={(event) => setCode(event.target.value)} placeholder="Nhập mã OTP" /></label><div className="actions" style={{ marginTop: 18 }}><button className="btn" type="button" onClick={requestOtp}>Gửi mã OTP</button><button className="btn secondary" type="button" onClick={verifyOtp}>Xác minh</button>{state.auth && <button className="btn secondary" type="button" onClick={logout}>Đăng xuất</button>}<RouteButton className="btn secondary" to="/web/saved" navigate={navigate}>Xem nhà đã lưu</RouteButton></div>{state.auth && <p className="subtle" style={{ marginTop: 12 }}>Đang đăng nhập: {state.auth.user.fullName || state.auth.user.phone} · {state.auth.user.role}</p>}</div><div className="card pad"><h3>Thông báo</h3><div className="grid" style={{ marginTop: 14 }}>{state.notifications.map((item) => <p className="card pad subtle" key={item}>{item}</p>)}</div></div></section></main>;
 }
