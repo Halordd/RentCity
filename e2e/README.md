@@ -5,6 +5,7 @@ Automated end-to-end tests for the main RentCity flows.
 ## Covered Flows
 
 - Backend contract smoke: listings, uploads, OTP auth, booking, messaging, owner dashboard, admin verification.
+- Backend security: unauthenticated requests, invalid tokens, tenant/owner/admin role boundaries, booking ownership, conversation ownership.
 - Web tenant: landing, search, listing detail, OTP login, booking, payments.
 - Web owner center: owner dashboard and draft listing creation.
 - Mobile app: search, listing, bookings, payments, messages with internal scroll.

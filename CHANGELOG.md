@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.2 - 2026-07-01
+
+### Added
+
+- Backend security E2E coverage for unauthenticated protected routes, malformed bearer tokens, tenant/owner/admin role boundaries, booking ownership, and conversation ownership.
+- E2E documentation entry for security and permission coverage.
+
 ## v0.2.1 - 2026-07-01
 
 ### Added
