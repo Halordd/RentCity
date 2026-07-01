@@ -1,107 +1,177 @@
-# RentCity Backend Handoff
+# RentCity Backend
 
-This branch area is reserved for the backend implementation. The current product is frontend-only, so this file lists the backend contracts needed by the React frontend.
+Backend for the RentCity rental platform. This service is organized as a modular NestJS application, where each business area has its own module, controller, DTOs, and service.
 
-## Suggested Stack
+## Stack
 
-- Node.js with NestJS or Express, or another framework the backend team prefers.
-- PostgreSQL for relational data.
-- Redis for OTP/session/rate-limit if needed.
-- Object storage for listing photos, verification documents, contracts, and receipts.
-- WebSocket or polling for messages and booking updates.
+- Framework: NestJS 11
+- Runtime: Node.js
+- HTTP adapter: Fastify
+- Language: TypeScript strict mode
+- ORM: Prisma
+- Database: PostgreSQL
+- Cache/queue candidate: Redis
+- API style: REST
+- Auth direction: OTP login + JWT/session boundary
+- Validation: Nest validation pipe with `class-validator` ready
+- Security baseline: CORS + Fastify Helmet
+- Dev infra: Docker Compose for PostgreSQL and Redis
+- Deployment: Dockerfile, Prisma migrations, env validation
+- Operations: request ids, consistent error payloads, liveness/readiness checks
+- API contract: OpenAPI at `/api-docs` and `/api-docs.json`
+- Rate limiting: Redis-backed OTP request limits when `REDIS_URL` is configured
 
-## Core Modules
+## Backend Architecture
 
-- Auth and users: phone OTP, sessions, tenant profile, owner profile, admin roles.
-- Listings: CRUD, search filters, amenities, real photos, geocode/map coordinates, review status.
-- Bookings: availability, viewing request, reschedule, cancel, owner confirmation.
-- Saved homes: save, unsave, compare saved listings.
-- Messaging: tenant-owner-support conversations, read state, unread counts.
-- Payments and deposits: deposit request, payment status, refund, receipts.
-- Contracts: draft, confirm, sign, PDF storage.
-- Owner dashboard: listing portfolio, tenant pipeline, booking metrics, automation.
-- Admin console: owner verification, listing QA, disputes, billing, audit logs, RBAC.
-- Notifications: OTP, booking confirmation, reminder, payment, contract, push subscription.
+RentCity backend is currently a modular monolith. That means it is one deployable backend application, but internally it is split by business capability:
 
-## Minimum MVP APIs
+- `controller`: receives HTTP requests and maps routes.
+- `service`: owns business logic for that module.
+- `integrations`: owns external provider boundaries such as SMS, payment, storage, and rate limiting.
+- `database`: Prisma access layer.
+- `prisma/schema.prisma`: source of truth for relational data models.
+- `docs/`: API, architecture, and service handoff notes.
 
-Auth:
+This shape is intentional. It keeps the project simple for MVP while still making it easy to split into separate services later if traffic or team size grows.
 
-- `POST /auth/otp/request`
-- `POST /auth/otp/verify`
-- `POST /auth/logout`
-- `GET /me`
+## Folder Structure
 
-Listings:
+```text
+back-end/
+  prisma/schema.prisma
+  src/
+    main.ts
+    app.module.ts
+    common/
+    config/
+    database/
+    integrations/
+    modules/
+      admin/
+      auth/
+      bookings/
+      contracts/
+      health/
+      listings/
+      messages/
+      notifications/
+      owner/
+      payments/
+      saved/
+      users/
+```
 
-- `GET /listings`
-- `GET /listings/:id`
-- `POST /owner/listings`
-- `PATCH /owner/listings/:id`
-- `POST /owner/listings/:id/images`
-- `POST /admin/listings/:id/review`
+## Setup
 
-Bookings:
+```bash
+cd back-end
+cmd /c npm install
+cmd /c npm run db:up
+cmd /c npm run prisma:generate
+cmd /c npm run prisma:migrate
+cmd /c npm run seed
+cmd /c npm run dev
+```
 
-- `GET /listings/:id/availability`
-- `POST /bookings`
-- `PATCH /bookings/:id/reschedule`
-- `PATCH /bookings/:id/cancel`
-- `PATCH /owner/bookings/:id/confirm`
+Quality gate:
 
-Saved:
+```bash
+cmd /c npm run ci
+```
 
-- `GET /me/saved-listings`
-- `POST /me/saved-listings/:listingId`
-- `DELETE /me/saved-listings/:listingId`
+Every response includes an `x-request-id` header. Error responses use a stable shape:
 
-Messages:
+```json
+{
+  "error": {
+    "statusCode": 400,
+    "code": "BAD_REQUEST",
+    "message": "Validation failed",
+    "timestamp": "2026-06-23T00:00:00.000Z",
+    "path": "/example",
+    "requestId": "..."
+  }
+}
+```
 
-- `GET /conversations`
-- `GET /conversations/:id/messages`
-- `POST /conversations/:id/messages`
+Database tools:
 
-Payments and contracts:
+```bash
+cmd /c npm run db:up
+cmd /c npm run prisma:validate
+cmd /c npm run prisma:migrate
+cmd /c npm run prisma:deploy
+cmd /c npm run db:down
+```
 
-- `POST /payments/deposits`
-- `GET /payments/:id`
-- `POST /payments/webhook`
-- `POST /contracts`
-- `GET /contracts/:id`
+## Environment
 
-Admin:
+Copy `.env.example` to `.env`.
 
-- `GET /admin/metrics`
-- `GET /admin/verifications`
-- `POST /admin/verifications/:id/approve`
-- `POST /admin/verifications/:id/request-more`
-- `GET /admin/disputes`
-- `PATCH /admin/disputes/:id`
-- `GET /admin/audit-logs`
+```text
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/rentcity?schema=public"
+NODE_ENV="development"
+JWT_SECRET="change-me"
+REFRESH_TOKEN_TTL_DAYS=30
+PORT=4000
+FRONTEND_ORIGINS="http://localhost:4173,http://localhost:4174"
+API_DOCS_ENABLED=true
+SMS_PROVIDER="local"
+PAYMENT_PROVIDER="local"
+STORAGE_PROVIDER="local"
+REDIS_URL="redis://localhost:6379"
+```
 
-PWA/app state:
+Production deployment notes are in `docs/deployment.md`.
 
-- `GET /me/app-state`
-- `PATCH /me/app-state`
-- `POST /notifications/push-subscriptions`
+## MVP Modules
 
-## Frontend Integration Notes
+- Auth: OTP request/verify, refresh session, logout, current user.
+- Users: tenant, owner, admin role boundaries.
+- Listings: search, detail, owner CRUD, image metadata, admin review.
+- Bookings: availability, create, reschedule, cancel, owner confirm.
+- Saved homes: save, unsave, list saved homes.
+- Messages: conversations, unread counts, read state, and message notifications.
+- Payments: deposit request, checkout intent, payment lookup, signed and idempotent webhook boundary.
+- Contracts: draft contract creation and lookup.
+- Owner: portfolio, booking queue, listing management.
+- Admin: metrics, verification review, disputes, audit logs, access boundary.
+- Notifications/PWA: notification outbox, push subscription, and app-state endpoints.
 
-- Frontend reads `VITE_API_BASE_URL` from `front-end/.env.example`.
-- Shared frontend models are in `front-end/src/types.ts`.
-- The HTTP placeholder is in `front-end/src/api/httpClient.ts`.
-- Current mock reads can be replaced service by service:
-  - Listings: `front-end/src/services/listings.service.ts`
-  - Bookings: `front-end/src/services/bookings.service.ts`
-  - Admin: `front-end/src/services/admin.service.ts`
-  - Future split: `auth.service.ts`, `messages.service.ts`, `payments.service.ts`, `users.service.ts`
+## API Docs
 
-## Security Checklist
+See:
 
-- Validate all server input.
-- Rate-limit OTP, booking, message, and upload APIs.
-- Enforce RBAC for admin actions.
-- Keep identity documents and ownership documents private.
-- Add audit logs for approve, refund, export, and role changes.
-- Configure CORS for production frontend domains.
-- Sanitize listing descriptions and message content.
+```text
+docs/api.md
+docs/architecture.md
+docs/services.md
+```
+
+## Frontend Integration
+
+The frontend should point `VITE_API_BASE_URL` to this backend, for example:
+
+```text
+VITE_API_BASE_URL=http://localhost:4000
+```
+
+Backend API contract:
+
+```text
+http://localhost:4000/api-docs
+http://localhost:4000/api-docs.json
+```
+
+API responses should keep stable fields:
+
+- `id`
+- `status`
+- `createdAt`
+- `updatedAt`
+- ISO date strings
+- image URLs, not raw file bytes
+
+## Notes
+
+This backend now has a production-ready service foundation: guarded routes, DTO validation, Prisma data access, env validation, Docker build, migration path, and seed data. Real external adapters are still needed for SMS OTP delivery, file storage, payment verification, push notifications, and observability before handling real transactions.

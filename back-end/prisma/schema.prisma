@@ -1,0 +1,356 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  TENANT
+  OWNER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING_VERIFICATION
+  SUSPENDED
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  PAUSED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING_OWNER
+  CONFIRMED
+  RESCHEDULED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ContractStatus {
+  DRAFT
+  SENT
+  SIGNED
+  CANCELLED
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REQUEST_MORE
+  REJECTED
+}
+
+enum DisputeStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  SMS
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model User {
+  id            String      @id @default(cuid())
+  phone         String      @unique
+  email         String?
+  fullName      String?
+  role          UserRole    @default(TENANT)
+  status        UserStatus  @default(ACTIVE)
+  preferredArea String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  listings      Listing[]   @relation("OwnerListings")
+  bookings      Booking[]   @relation("TenantBookings")
+  savedListings SavedListing[]
+  messages      Message[]
+  payments      Payment[]
+  contracts     Contract[]
+  verifications Verification[]
+  auditLogs     AuditLog[]
+  disputes      Dispute[]
+  authSessions  AuthSession[]
+  notifications Notification[]
+  appState      AppState?
+  pushSubscriptions PushSubscription[]
+  sentConversations Conversation[] @relation("TenantConversations")
+  ownedConversations Conversation[] @relation("OwnerConversations")
+}
+
+model OtpChallenge {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
+model AuthSession {
+  id               String    @id @default(cuid())
+  userId           String
+  refreshTokenHash String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  lastUsedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt, expiresAt])
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+  ownerId     String
+  title       String
+  description String
+  address     String
+  district    String
+  city        String        @default("Ho Chi Minh City")
+  price       Int
+  deposit     Int?
+  area        Int
+  bedrooms    Int?
+  bathrooms   Int?
+  floor       String?
+  electricityFee String?
+  waterFee    String?
+  parkingFee  String?
+  petAllowed  Boolean      @default(false)
+  amenities   String[]
+  lat         Decimal?
+  lng         Decimal?
+  status      ListingStatus @default(DRAFT)
+  availableFrom DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  owner        User          @relation("OwnerListings", fields: [ownerId], references: [id])
+  images       ListingImage[]
+  bookings     Booking[]
+  savedBy      SavedListing[]
+  payments     Payment[]
+  contracts    Contract[]
+  conversations Conversation[]
+}
+
+model ListingImage {
+  id        String   @id @default(cuid())
+  listingId String
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  listingId String
+  tenantId  String
+  date      DateTime
+  timeSlot  String
+  note      String?
+  status    BookingStatus @default(PENDING_OWNER)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  tenant  User    @relation("TenantBookings", fields: [tenantId], references: [id])
+}
+
+model SavedListing {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  listingId String?
+  tenantId  String?
+  ownerId   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+
+  listing Listing? @relation(fields: [listingId], references: [id])
+  tenant  User?    @relation("TenantConversations", fields: [tenantId], references: [id])
+  owner   User?    @relation("OwnerConversations", fields: [ownerId], references: [id])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  userId    String
+  listingId String?
+  amount    Int
+  currency  String        @default("VND")
+  status    PaymentStatus @default(PENDING)
+  provider  String?
+  reference String?       @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id])
+  listing Listing? @relation(fields: [listingId], references: [id])
+  webhookEvents PaymentWebhookEvent[]
+}
+
+model PaymentWebhookEvent {
+  id          String        @id @default(cuid())
+  paymentId   String?
+  provider    String
+  eventKey    String        @unique
+  reference   String
+  status      PaymentStatus
+  payload     Json
+  processedAt DateTime
+  createdAt   DateTime      @default(now())
+
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@index([reference, createdAt])
+}
+
+model Contract {
+  id        String         @id @default(cuid())
+  userId    String
+  listingId String
+  fileUrl   String?
+  status    ContractStatus @default(DRAFT)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  listing Listing @relation(fields: [listingId], references: [id])
+}
+
+model Verification {
+  id        String             @id @default(cuid())
+  ownerId   String
+  status    VerificationStatus @default(PENDING)
+  note      String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  target    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+}
+
+model Dispute {
+  id        String        @id @default(cuid())
+  userId    String
+  listingId String?
+  title     String
+  body      String
+  status    DisputeStatus @default(OPEN)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AppState {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  payload   Json
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id          String             @id @default(cuid())
+  userId      String?
+  channel     NotificationChannel
+  topic       String
+  title       String
+  body        String
+  payload     Json?
+  status      NotificationStatus @default(PENDING)
+  scheduledAt DateTime           @default(now())
+  sentAt      DateTime?
+  readAt      DateTime?
+  attempts    Int                @default(0)
+  lastError   String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledAt])
+  @@index([userId, createdAt])
+}
