@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
 import { ok } from "../../common/api-response";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
@@ -14,6 +15,8 @@ import { OwnerService } from "./owner.service";
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.OWNER, UserRole.ADMIN)
+@ApiBearerAuth()
+@ApiTags("Owner")
 @Controller("owner")
 export class OwnerController {
   constructor(private readonly ownerService: OwnerService) {}

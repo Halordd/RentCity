@@ -1,9 +1,11 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
+import { env } from "node:process";
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
+    if (env.NODE_ENV !== "production" && env.SKIP_PRISMA_CONNECT === "true") return;
     await this.$connect();
   }
 

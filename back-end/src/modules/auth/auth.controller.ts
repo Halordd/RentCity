@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiTags } from "@nestjs/swagger";
 import { ok } from "../../common/api-response";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
@@ -8,6 +9,7 @@ import { RequestOtpDto } from "./dto/request-otp.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { VerifyOtpDto } from "./dto/verify-otp.dto";
 
+@ApiTags("Auth")
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -23,6 +25,7 @@ export class AuthController {
   }
 
   @Post("auth/logout")
+  @ApiBody({ type: RefreshTokenDto, required: false })
   async logout(@Body() body: Partial<RefreshTokenDto>) {
     return ok(await this.authService.logout(body.refreshToken));
   }
@@ -33,6 +36,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get("me")
   async me(@CurrentUser() user: AuthenticatedUser) {
     return ok(await this.authService.currentUser(user.id));

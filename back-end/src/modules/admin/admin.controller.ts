@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
 import { ok } from "../../common/api-response";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
@@ -12,6 +13,8 @@ import { AdminService } from "./admin.service";
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
+@ApiBearerAuth()
+@ApiTags("Admin")
 @Controller("admin")
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}

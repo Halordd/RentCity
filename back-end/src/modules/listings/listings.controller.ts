@@ -1,8 +1,10 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { ok } from "../../common/api-response";
 import { ListingsService } from "./listings.service";
 import { SearchListingsDto } from "./dto/search-listings.dto";
 
+@ApiTags("Listings")
 @Controller("listings")
 export class ListingsController {
   constructor(private readonly listingsService: ListingsService) {}

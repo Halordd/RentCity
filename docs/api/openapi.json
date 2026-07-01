@@ -1,0 +1,1935 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "HealthController_live",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/auth/otp/request": {
+      "post": {
+        "operationId": "AuthController_requestOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/otp/verify": {
+      "post": {
+        "operationId": "AuthController_verifyOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/users/me/profile": {
+      "get": {
+        "operationId": "UsersController_profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/listings": {
+      "get": {
+        "operationId": "ListingsController_list",
+        "parameters": [
+          {
+            "name": "district",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Quan 7",
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "studio ban cong",
+              "type": "string"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "example": 3000000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "example": 9000000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minArea",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "petAllowed",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listings"
+        ]
+      }
+    },
+    "/listings/{id}": {
+      "get": {
+        "operationId": "ListingsController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listings"
+        ]
+      }
+    },
+    "/listings/{id}/availability": {
+      "get": {
+        "operationId": "BookingsController_availability",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/me/bookings": {
+      "get": {
+        "operationId": "BookingsController_myBookings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/bookings": {
+      "post": {
+        "operationId": "BookingsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/bookings/{id}/reschedule": {
+      "patch": {
+        "operationId": "BookingsController_reschedule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleBookingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/bookings/{id}/cancel": {
+      "patch": {
+        "operationId": "BookingsController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/me/app-state": {
+      "get": {
+        "operationId": "NotificationsController_appState",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      },
+      "patch": {
+        "operationId": "NotificationsController_updateAppState",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppStateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/push-subscriptions": {
+      "post": {
+        "operationId": "NotificationsController_createPushSubscription",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePushSubscriptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/me/notifications": {
+      "get": {
+        "operationId": "NotificationsController_notifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/me/notifications/{id}/read": {
+      "patch": {
+        "operationId": "NotificationsController_markRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/me/saved-listings": {
+      "get": {
+        "operationId": "SavedController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Saved Listings"
+        ]
+      }
+    },
+    "/me/saved-listings/{listingId}": {
+      "post": {
+        "operationId": "SavedController_save",
+        "parameters": [
+          {
+            "name": "listingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Saved Listings"
+        ]
+      },
+      "delete": {
+        "operationId": "SavedController_remove",
+        "parameters": [
+          {
+            "name": "listingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Saved Listings"
+        ]
+      }
+    },
+    "/conversations": {
+      "get": {
+        "operationId": "MessagesController_conversations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Conversations"
+        ]
+      },
+      "post": {
+        "operationId": "MessagesController_createConversation",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Conversations"
+        ]
+      }
+    },
+    "/conversations/{id}/messages": {
+      "get": {
+        "operationId": "MessagesController_messages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Conversations"
+        ]
+      },
+      "post": {
+        "operationId": "MessagesController_create",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Conversations"
+        ]
+      }
+    },
+    "/conversations/{id}/read": {
+      "patch": {
+        "operationId": "MessagesController_markRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Conversations"
+        ]
+      }
+    },
+    "/payments/deposits": {
+      "post": {
+        "operationId": "PaymentsController_createDeposit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDepositDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/payments/{id}": {
+      "get": {
+        "operationId": "PaymentsController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/payments/webhook": {
+      "post": {
+        "operationId": "PaymentsController_webhook",
+        "parameters": [
+          {
+            "name": "x-rentcity-signature",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/contracts": {
+      "post": {
+        "operationId": "ContractsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContractDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Contracts"
+        ]
+      }
+    },
+    "/contracts/{id}": {
+      "get": {
+        "operationId": "ContractsController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Contracts"
+        ]
+      }
+    },
+    "/owner/dashboard": {
+      "get": {
+        "operationId": "OwnerController_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/owner/listings": {
+      "get": {
+        "operationId": "OwnerController_listings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      },
+      "post": {
+        "operationId": "OwnerController_createListing",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOwnerListingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/owner/listings/{id}": {
+      "patch": {
+        "operationId": "OwnerController_updateListing",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOwnerListingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/owner/listings/{id}/images": {
+      "post": {
+        "operationId": "OwnerController_addImage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddListingImageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/owner/listings/{id}/images/upload-intent": {
+      "post": {
+        "operationId": "OwnerController_createImageUploadIntent",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateImageUploadIntentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/owner/bookings": {
+      "get": {
+        "operationId": "OwnerController_bookings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/owner/bookings/{id}/confirm": {
+      "patch": {
+        "operationId": "OwnerController_confirmBooking",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/admin/metrics": {
+      "get": {
+        "operationId": "AdminController_metrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/verifications": {
+      "get": {
+        "operationId": "AdminController_verifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/listings": {
+      "get": {
+        "operationId": "AdminController_listings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/verifications/{id}/approve": {
+      "post": {
+        "operationId": "AdminController_approveVerification",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/verifications/{id}/request-more": {
+      "post": {
+        "operationId": "AdminController_requestMoreVerification",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/listings/{id}/review": {
+      "post": {
+        "operationId": "AdminController_reviewListing",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewListingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/disputes": {
+      "get": {
+        "operationId": "AdminController_disputes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/disputes/{id}": {
+      "patch": {
+        "operationId": "AdminController_updateDispute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDisputeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/audit-logs": {
+      "get": {
+        "operationId": "AdminController_auditLogs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "RentCity Backend API",
+    "description": "REST API contract for RentCity web, mobile app, and phone-based web app clients.",
+    "version": "0.2.4",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Local development"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RequestOtpDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "example": "+84912345678",
+            "description": "Vietnam phone number used for OTP login."
+          }
+        },
+        "required": [
+          "phone"
+        ]
+      },
+      "VerifyOtpDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "example": "+84912345678"
+          },
+          "code": {
+            "type": "string",
+            "example": "123456",
+            "minLength": 6,
+            "maxLength": 6
+          }
+        },
+        "required": [
+          "phone",
+          "code"
+        ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "rc_refresh_session_secret"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Nguyen Van An",
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "example": "tenant@rentcity.vn"
+          },
+          "preferredArea": {
+            "type": "string",
+            "example": "Quan 7",
+            "maxLength": 120
+          }
+        }
+      },
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateBookingDto": {
+        "type": "object",
+        "properties": {
+          "listingId": {
+            "type": "string",
+            "example": "studio-nguyen-van-cu"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-07-04",
+            "format": "date"
+          },
+          "timeSlot": {
+            "type": "string",
+            "example": "14:30 - 16:00"
+          },
+          "note": {
+            "type": "string",
+            "example": "Can I view this listing after work?"
+          }
+        },
+        "required": [
+          "listingId",
+          "date",
+          "timeSlot"
+        ]
+      },
+      "RescheduleBookingDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-07-05",
+            "format": "date"
+          },
+          "timeSlot": {
+            "type": "string",
+            "example": "09:00 - 11:00"
+          }
+        },
+        "required": [
+          "date",
+          "timeSlot"
+        ]
+      },
+      "UpdateAppStateDto": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "example": {
+              "activeTab": "saved",
+              "filters": {
+                "district": "Quan 7"
+              }
+            }
+          }
+        },
+        "required": [
+          "payload"
+        ]
+      },
+      "CreatePushSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "example": "https://push.example/subscription/abc"
+          },
+          "keys": {
+            "type": "object",
+            "example": {
+              "p256dh": "public-key",
+              "auth": "auth-secret"
+            }
+          }
+        },
+        "required": [
+          "endpoint",
+          "keys"
+        ]
+      },
+      "CreateConversationDto": {
+        "type": "object",
+        "properties": {
+          "listingId": {
+            "type": "string",
+            "example": "studio-nguyen-van-cu"
+          },
+          "ownerId": {
+            "type": "string",
+            "example": "owner-minh"
+          }
+        },
+        "required": [
+          "ownerId"
+        ]
+      },
+      "CreateMessageDto": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "example": "Can I visit this room tomorrow?",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "CreateDepositDto": {
+        "type": "object",
+        "properties": {
+          "listingId": {
+            "type": "string",
+            "example": "studio-nguyen-van-cu"
+          },
+          "amount": {
+            "type": "number",
+            "example": 1000000,
+            "minimum": 1
+          },
+          "provider": {
+            "type": "string",
+            "example": "local"
+          }
+        },
+        "required": [
+          "listingId",
+          "amount"
+        ]
+      },
+      "PaymentWebhookDto": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string",
+            "example": "rc_1719820000_abcd1234"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PROCESSING",
+              "PAID",
+              "FAILED",
+              "REFUNDED"
+            ],
+            "example": "PAID"
+          },
+          "amount": {
+            "type": "number",
+            "example": 1000000,
+            "minimum": 1
+          },
+          "provider": {
+            "type": "string",
+            "example": "payos"
+          },
+          "eventId": {
+            "type": "string",
+            "example": "payos:event:123"
+          }
+        },
+        "required": [
+          "reference",
+          "status"
+        ]
+      },
+      "CreateContractDto": {
+        "type": "object",
+        "properties": {
+          "listingId": {
+            "type": "string",
+            "example": "studio-nguyen-van-cu"
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://cdn.rentcity.vn/contracts/contract-123.pdf"
+          }
+        },
+        "required": [
+          "listingId"
+        ]
+      },
+      "CreateOwnerListingDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Studio Nguyen Van Cu"
+          },
+          "description": {
+            "type": "string",
+            "example": "Bright studio with balcony and full furniture."
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Nguyen Van Cu"
+          },
+          "district": {
+            "type": "string",
+            "example": "Quan 7"
+          },
+          "city": {
+            "type": "string",
+            "example": "Ho Chi Minh City"
+          },
+          "price": {
+            "type": "number",
+            "example": 5800000,
+            "minimum": 0
+          },
+          "deposit": {
+            "type": "number",
+            "example": 5800000,
+            "minimum": 0
+          },
+          "area": {
+            "type": "number",
+            "example": 28,
+            "minimum": 1
+          },
+          "bedrooms": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "bathrooms": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "floor": {
+            "type": "string",
+            "example": "Tang 5"
+          },
+          "electricityFee": {
+            "type": "string",
+            "example": "4k/kWh"
+          },
+          "waterFee": {
+            "type": "string",
+            "example": "100k/month"
+          },
+          "parkingFee": {
+            "type": "string",
+            "example": "150k/month"
+          },
+          "petAllowed": {
+            "type": "boolean",
+            "example": true
+          },
+          "amenities": {
+            "example": [
+              "May lanh",
+              "Ban cong"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "address",
+          "district",
+          "price",
+          "area"
+        ]
+      },
+      "UpdateOwnerListingDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Studio Nguyen Van Cu"
+          },
+          "description": {
+            "type": "string",
+            "example": "Bright studio with balcony and full furniture."
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Nguyen Van Cu"
+          },
+          "district": {
+            "type": "string",
+            "example": "Quan 7"
+          },
+          "city": {
+            "type": "string",
+            "example": "Ho Chi Minh City"
+          },
+          "price": {
+            "type": "number",
+            "example": 5800000,
+            "minimum": 0
+          },
+          "deposit": {
+            "type": "number",
+            "example": 5800000,
+            "minimum": 0
+          },
+          "area": {
+            "type": "number",
+            "example": 28,
+            "minimum": 1
+          },
+          "bedrooms": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "bathrooms": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "floor": {
+            "type": "string",
+            "example": "Tang 5"
+          },
+          "electricityFee": {
+            "type": "string",
+            "example": "4k/kWh"
+          },
+          "waterFee": {
+            "type": "string",
+            "example": "100k/month"
+          },
+          "parkingFee": {
+            "type": "string",
+            "example": "150k/month"
+          },
+          "petAllowed": {
+            "type": "boolean",
+            "example": true
+          },
+          "amenities": {
+            "example": [
+              "May lanh",
+              "Ban cong"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AddListingImageDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://images.rentcity.vn/studio-1.jpg"
+          },
+          "alt": {
+            "type": "string",
+            "example": "Bedroom with large window"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "CreateImageUploadIntentDto": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "example": "studio-bedroom.jpg"
+          },
+          "contentType": {
+            "type": "string",
+            "example": "image/jpeg"
+          },
+          "sizeBytes": {
+            "type": "number",
+            "example": 512000,
+            "minimum": 1,
+            "maximum": 10485760
+          },
+          "alt": {
+            "type": "string",
+            "example": "Bedroom photo"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "filename",
+          "contentType",
+          "sizeBytes"
+        ]
+      },
+      "ReviewListingDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PENDING_REVIEW",
+              "PUBLISHED",
+              "PAUSED",
+              "REJECTED"
+            ],
+            "example": "PUBLISHED"
+          },
+          "note": {
+            "type": "string",
+            "example": "Photos and pricing look valid."
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "UpdateDisputeDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "IN_REVIEW",
+              "RESOLVED",
+              "REJECTED"
+            ],
+            "example": "RESOLVED"
+          },
+          "note": {
+            "type": "string",
+            "example": "Resolved after contacting both sides."
+          }
+        },
+        "required": [
+          "status"
+        ]
+      }
+    }
+  }
+}

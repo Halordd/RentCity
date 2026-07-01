@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { ok } from "../../common/api-response";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
@@ -8,6 +9,8 @@ import { CreateMessageDto } from "./dto/create-message.dto";
 import { MessagesService } from "./messages.service";
 
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiTags("Conversations")
 @Controller("conversations")
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}

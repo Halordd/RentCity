@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { ok } from "../../common/api-response";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
@@ -7,6 +8,8 @@ import { CreateContractDto } from "./dto/create-contract.dto";
 import { ContractsService } from "./contracts.service";
 
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiTags("Contracts")
 @Controller("contracts")
 export class ContractsController {
   constructor(private readonly contractsService: ContractsService) {}

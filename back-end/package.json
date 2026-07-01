@@ -1,6 +1,6 @@
 {
   "name": "rentcity-backend",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "type": "commonjs",
   "scripts": {
@@ -20,7 +20,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "openapi:generate": "ts-node scripts/export-openapi.ts",
+    "openapi:check": "ts-node scripts/export-openapi.ts --check"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",

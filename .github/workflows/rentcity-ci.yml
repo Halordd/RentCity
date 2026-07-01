@@ -130,6 +130,9 @@ jobs:
       - name: Typecheck, lint, build, unit test, and audit
         run: npm run ci
 
+      - name: Verify API contract is current
+        run: npm run openapi:check
+
   production_security:
     name: Production security gate
     needs:

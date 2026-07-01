@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { ok } from "../../common/api-response";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
@@ -8,6 +9,8 @@ import { UpdateAppStateDto } from "./dto/update-app-state.dto";
 import { NotificationsService } from "./notifications.service";
 
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiTags("Notifications")
 @Controller()
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}

@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.4 - 2026-07-01
+
+### Added
+
+- OpenAPI contract generation and drift check scripts for the NestJS backend.
+- Generated API contract artifact at `docs/api/openapi.json`.
+- Human-readable API contract documentation covering auth, listings, bookings, messages, payments, contracts, owner, admin, notifications, and profile routes.
+- Swagger metadata for backend controllers and DTOs so request payload schemas are visible to frontend and backend contributors.
+- CI API contract check inside the backend quality gate.
+
 ## v0.2.3 - 2026-07-01
 
 ### Added

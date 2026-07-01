@@ -16,6 +16,7 @@ That final job fails unless every production gate below succeeds.
 
 - `Frontend quality gate`: installs `front-end`, then runs typecheck, lint, and production build.
 - `Backend quality gate`: starts PostgreSQL and Redis, validates Prisma, applies migrations, builds, runs unit tests, and runs audit.
+- `API contract check`: runs inside the backend gate and fails if `docs/api/openapi.json` is not generated from the current NestJS controllers and DTOs.
 - `Production security gate`: starts the backend with `NODE_ENV=production` and verifies security headers, CORS allowlist behavior, disabled OpenAPI docs, hidden OTP dev codes, and signed payment webhooks.
 - `Full-stack E2E`: starts real backend services and runs the Playwright flows for web, app, web_app, owner, admin, backend contract, and permissions.
 - `Production Docker package`: validates `docker-compose.production.yml` and builds the production frontend/backend Docker images.
