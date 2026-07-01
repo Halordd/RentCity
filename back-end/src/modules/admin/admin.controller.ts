@@ -26,6 +26,11 @@ export class AdminController {
     return ok(await this.adminService.verifications());
   }
 
+  @Get("listings")
+  async listings() {
+    return ok(await this.adminService.listings());
+  }
+
   @Post("verifications/:id/approve")
   async approveVerification(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
     return ok(await this.adminService.setVerificationStatus(user, id, "APPROVED"));

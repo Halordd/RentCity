@@ -58,6 +58,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 
 ## Owner
 
+- `GET /owner/dashboard` - owner/admin
 - `GET /owner/listings` - owner/admin
 - `POST /owner/listings` - owner/admin
 - `PATCH /owner/listings/:id` - owner/admin
@@ -69,6 +70,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 ## Bookings
 
 - `GET /listings/:id/availability`
+- `GET /me/bookings` - authenticated
 - `POST /bookings` - tenant login required
 - `PATCH /bookings/:id/reschedule` - booking tenant only
 - `PATCH /bookings/:id/cancel` - booking tenant only
@@ -101,6 +103,7 @@ OTP verification returns the token. In non-production mode the OTP request respo
 ## Admin
 
 - `GET /admin/metrics` - admin only
+- `GET /admin/listings` - admin only, review queue
 - `GET /admin/verifications` - admin only
 - `POST /admin/verifications/:id/approve` - admin only
 - `POST /admin/verifications/:id/request-more` - admin only

@@ -86,6 +86,27 @@ export class BookingsService {
     return booking;
   }
 
+  async myBookings(user: AuthenticatedUser) {
+    const items = await this.prisma.booking.findMany({
+      where: user.role === UserRole.ADMIN ? {} : { tenantId: user.id },
+      include: {
+        listing: {
+          select: {
+            id: true,
+            title: true,
+            address: true,
+            district: true,
+            price: true,
+            owner: { select: { id: true, fullName: true, phone: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    return { items };
+  }
+
   async reschedule(user: AuthenticatedUser, id: string, payload: RescheduleBookingDto) {
     await this.assertBookingAccess(user, id);
     return this.prisma.booking.update({

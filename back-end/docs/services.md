@@ -72,11 +72,13 @@ External adapters still needed:
 Current implementation:
 
 - `GET /listings/:id/availability`
+- `GET /me/bookings`
 - `POST /bookings`
 - `PATCH /bookings/:id/reschedule`
 - `PATCH /bookings/:id/cancel`
 - Generates near-term viewing slots.
 - Blocks already booked slots.
+- Returns authenticated user's booking history for app/web_app schedule screens.
 - Enforces tenant ownership for reschedule/cancel.
 
 External adapters still needed:
@@ -119,6 +121,7 @@ External adapters still needed:
 Current implementation:
 
 - `GET /owner/listings`
+- `GET /owner/dashboard`
 - `POST /owner/listings`
 - `PATCH /owner/listings/:id`
 - `POST /owner/listings/:id/images`
@@ -128,6 +131,7 @@ Current implementation:
 - Owner/admin role guard.
 - Listing ownership checks.
 - Upload intent creation through the storage provider interface.
+- Owner dashboard metrics, pipeline counts, latest bookings, and listings needing action.
 - Owner booking queue and booking confirmation.
 
 External adapters still needed:
@@ -140,6 +144,7 @@ External adapters still needed:
 Current implementation:
 
 - `GET /admin/metrics`
+- `GET /admin/listings`
 - `GET /admin/verifications`
 - `POST /admin/verifications/:id/approve`
 - `POST /admin/verifications/:id/request-more`
@@ -148,6 +153,7 @@ Current implementation:
 - `PATCH /admin/disputes/:id`
 - `GET /admin/audit-logs`
 - Admin-only guard.
+- Listing review queue.
 - Verification review flow.
 - Listing moderation flow.
 - Dispute status flow.

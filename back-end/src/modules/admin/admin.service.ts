@@ -36,6 +36,20 @@ export class AdminService {
     };
   }
 
+  async listings() {
+    const items = await this.prisma.listing.findMany({
+      where: { status: { in: [ListingStatus.PENDING_REVIEW, ListingStatus.REJECTED] } },
+      include: {
+        owner: { select: { id: true, fullName: true, phone: true, status: true } },
+        images: { orderBy: { sortOrder: "asc" }, take: 1 }
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 100
+    });
+
+    return { items };
+  }
+
   async setVerificationStatus(user: AuthenticatedUser, id: string, status: VerificationStatus) {
     const verification = await this.prisma.verification.update({
       where: { id },

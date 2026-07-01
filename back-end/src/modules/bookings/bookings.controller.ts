@@ -12,8 +12,14 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Get("listings/:id/availability")
-  availability(@Param("id") listingId: string) {
-    return ok(this.bookingsService.availability(listingId));
+  async availability(@Param("id") listingId: string) {
+    return ok(await this.bookingsService.availability(listingId));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("me/bookings")
+  async myBookings(@CurrentUser() user: AuthenticatedUser) {
+    return ok(await this.bookingsService.myBookings(user));
   }
 
   @UseGuards(JwtAuthGuard)

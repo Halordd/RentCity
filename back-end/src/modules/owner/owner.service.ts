@@ -17,8 +17,80 @@ export class OwnerService {
     private readonly notifications: NotificationsService
   ) {}
 
+  async dashboard(user: AuthenticatedUser) {
+    const listingWhere = this.ownerScopedListingWhere(user);
+    const bookingWhere = user.role === UserRole.ADMIN ? {} : { listing: { ownerId: user.id } };
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    const [
+      managedListings,
+      publishedListings,
+      pendingBookings,
+      confirmedBookings,
+      activeConversations,
+      draftContracts,
+      monthlyRevenue,
+      latestBookings,
+      listingsNeedingAction
+    ] = await this.prisma.$transaction([
+      this.prisma.listing.count({ where: listingWhere }),
+      this.prisma.listing.count({ where: { ...listingWhere, status: ListingStatus.PUBLISHED } }),
+      this.prisma.booking.count({ where: { ...bookingWhere, status: BookingStatus.PENDING_OWNER } }),
+      this.prisma.booking.count({ where: { ...bookingWhere, status: { in: [BookingStatus.CONFIRMED, BookingStatus.RESCHEDULED] } } }),
+      this.prisma.conversation.count({ where: user.role === UserRole.ADMIN ? {} : { ownerId: user.id } }),
+      this.prisma.contract.count({ where: user.role === UserRole.ADMIN ? { status: "DRAFT" } : { status: "DRAFT", listing: { ownerId: user.id } } }),
+      this.prisma.payment.aggregate({
+        where: {
+          status: "PAID",
+          createdAt: { gte: monthStart },
+          ...(user.role === UserRole.ADMIN ? {} : { listing: { ownerId: user.id } })
+        },
+        _sum: { amount: true }
+      }),
+      this.prisma.booking.findMany({
+        where: bookingWhere,
+        include: {
+          listing: { select: { id: true, title: true, address: true } },
+          tenant: { select: { id: true, fullName: true, phone: true } }
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5
+      }),
+      this.prisma.listing.findMany({
+        where: {
+          ...listingWhere,
+          status: { in: [ListingStatus.DRAFT, ListingStatus.PENDING_REVIEW, ListingStatus.REJECTED] }
+        },
+        include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+        orderBy: { updatedAt: "desc" },
+        take: 5
+      })
+    ]);
+
+    return {
+      metrics: {
+        managedListings,
+        publishedListings,
+        pendingBookings,
+        confirmedBookings,
+        monthlyRevenue: monthlyRevenue._sum.amount ?? 0,
+        needsAction: pendingBookings + listingsNeedingAction.length
+      },
+      pipeline: [
+        { key: "new_leads", label: "New leads", count: pendingBookings },
+        { key: "scheduled", label: "Scheduled viewings", count: confirmedBookings },
+        { key: "negotiating", label: "Negotiating", count: activeConversations },
+        { key: "contracts", label: "Draft contracts", count: draftContracts }
+      ],
+      latestBookings,
+      listingsNeedingAction
+    };
+  }
+
   async listings(user: AuthenticatedUser) {
-    const where = user.role === UserRole.ADMIN ? {} : { ownerId: user.id };
+    const where = this.ownerScopedListingWhere(user);
     const items = await this.prisma.listing.findMany({
       where,
       include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
@@ -139,5 +211,9 @@ export class OwnerService {
     if (user.role !== UserRole.ADMIN && listing.ownerId !== user.id) {
       throw new ForbiddenException("Cannot modify another owner's listing");
     }
+  }
+
+  private ownerScopedListingWhere(user: AuthenticatedUser) {
+    return user.role === UserRole.ADMIN ? {} : { ownerId: user.id };
   }
 }

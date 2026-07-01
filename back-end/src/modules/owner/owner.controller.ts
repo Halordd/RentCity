@@ -18,6 +18,11 @@ import { OwnerService } from "./owner.service";
 export class OwnerController {
   constructor(private readonly ownerService: OwnerService) {}
 
+  @Get("dashboard")
+  async dashboard(@CurrentUser() user: AuthenticatedUser) {
+    return ok(await this.ownerService.dashboard(user));
+  }
+
   @Get("listings")
   async listings(@CurrentUser() user: AuthenticatedUser) {
     return ok(await this.ownerService.listings(user));
