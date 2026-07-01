@@ -5,5 +5,8 @@ dist/
 !.env.example
 !**/.env.example
 *.log
+playwright-report/
+test-results/
+.playwright/
 Thumbs.db
 .DS_Store
