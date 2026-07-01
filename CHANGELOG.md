@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.3 - 2026-07-01
+
+### Added
+
+- Production security E2E coverage for HTTP security headers, CORS allowlist behavior, disabled OpenAPI docs, production OTP responses, and payment webhook signatures.
+- GitHub Actions production gates for security checks, Docker Compose validation/build, and a single release readiness status check.
+- CI/CD documentation describing required checks and branch protection setup.
+
 ## v0.2.2 - 2026-07-01
 
 ### Added

@@ -12,6 +12,9 @@ on:
       - "release/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: rentcity-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -24,6 +27,7 @@ jobs:
       has_frontend: ${{ steps.paths.outputs.has_frontend }}
       has_backend: ${{ steps.paths.outputs.has_backend }}
       has_e2e: ${{ steps.paths.outputs.has_e2e }}
+      has_production_package: ${{ steps.paths.outputs.has_production_package }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,6 +39,7 @@ jobs:
           [[ -f front-end/package.json ]] && echo "has_frontend=true" >> "$GITHUB_OUTPUT" || echo "has_frontend=false" >> "$GITHUB_OUTPUT"
           [[ -f back-end/package.json ]] && echo "has_backend=true" >> "$GITHUB_OUTPUT" || echo "has_backend=false" >> "$GITHUB_OUTPUT"
           [[ -f package.json && -f playwright.config.ts ]] && echo "has_e2e=true" >> "$GITHUB_OUTPUT" || echo "has_e2e=false" >> "$GITHUB_OUTPUT"
+          [[ -f docker-compose.production.yml && -f .env.production.example ]] && echo "has_production_package=true" >> "$GITHUB_OUTPUT" || echo "has_production_package=false" >> "$GITHUB_OUTPUT"
 
   frontend:
     name: Frontend quality gate
@@ -125,6 +130,108 @@ jobs:
       - name: Typecheck, lint, build, unit test, and audit
         run: npm run ci
 
+  production_security:
+    name: Production security gate
+    needs:
+      - detect
+      - backend
+    if: always() && needs.detect.outputs.has_backend == 'true' && needs.detect.outputs.has_e2e == 'true' && needs.backend.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: rentcity
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rentcity"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rentcity?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-production-jwt-secret-must-be-long-and-not-default
+      PAYMENT_WEBHOOK_SECRET: ci-production-payment-webhook-secret
+      FRONTEND_ORIGINS: http://localhost:4174
+      API_DOCS_ENABLED: "false"
+      NODE_ENV: production
+      E2E_BACKEND_URL: http://localhost:4000
+      E2E_SKIP_WEB_SERVER: "true"
+      E2E_PRODUCTION_SECURITY: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            back-end/package-lock.json
+
+      - name: Install root E2E dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: back-end
+        run: npm ci
+
+      - name: Prepare backend database
+        working-directory: back-end
+        run: |
+          npm run prisma:generate
+          npm run prisma:deploy
+          npm run seed
+
+      - name: Build backend
+        working-directory: back-end
+        run: npm run build
+
+      - name: Start backend API in production mode
+        working-directory: back-end
+        run: |
+          npm run start:prod > ../backend-production.log 2>&1 &
+          echo $! > ../backend-production.pid
+
+      - name: Wait for backend readiness
+        shell: bash
+        run: |
+          for _ in {1..60}; do
+            if curl -fsS "$E2E_BACKEND_URL/health/ready"; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat backend-production.log
+          exit 1
+
+      - name: Run production security tests
+        run: npx playwright test e2e/production-security.spec.ts --project=desktop
+
+      - name: Upload production backend log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-security-backend-log
+          path: backend-production.log
+          if-no-files-found: ignore
+
   e2e:
     name: Full-stack E2E
     needs:
@@ -212,7 +319,7 @@ jobs:
       - name: Wait for backend readiness
         shell: bash
         run: |
-          for attempt in {1..60}; do
+          for _ in {1..60}; do
             if curl -fsS "$E2E_BACKEND_URL/health/ready"; then
               exit 0
             fi
@@ -237,3 +344,49 @@ jobs:
             test-results/
             backend.log
           if-no-files-found: ignore
+
+  production_package:
+    name: Production Docker package
+    needs:
+      - detect
+      - frontend
+      - backend
+    if: always() && needs.detect.outputs.has_production_package == 'true' && needs.frontend.result == 'success' && needs.backend.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate production compose file
+        run: docker compose --env-file .env.production.example -f docker-compose.production.yml config
+
+      - name: Build production frontend and backend images
+        run: docker compose --env-file .env.production.example -f docker-compose.production.yml build frontend backend
+
+  release_readiness:
+    name: Release readiness
+    needs:
+      - frontend
+      - backend
+      - production_security
+      - e2e
+      - production_package
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify required gates passed
+        shell: bash
+        run: |
+          echo "frontend=${{ needs.frontend.result }}"
+          echo "backend=${{ needs.backend.result }}"
+          echo "production-security=${{ needs.production_security.result }}"
+          echo "e2e=${{ needs.e2e.result }}"
+          echo "production-package=${{ needs.production_package.result }}"
+
+          [[ "${{ needs.frontend.result }}" == "success" ]]
+          [[ "${{ needs.backend.result }}" == "success" ]]
+          [[ "${{ needs.production_security.result }}" == "success" ]]
+          [[ "${{ needs.e2e.result }}" == "success" ]]
+          [[ "${{ needs.production_package.result }}" == "success" ]]
