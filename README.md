@@ -37,6 +37,7 @@ e2e/                       Playwright tests cho các luồng chính
 ```
 
 Local full-stack setup lives in `docs/local-development.md`.
+Production deployment notes live in `docs/production-deployment.md`.
 
 ## Workflow
 

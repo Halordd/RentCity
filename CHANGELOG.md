@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.1 - 2026-07-01
+
+### Added
+
+- Production Docker Compose package for frontend, backend, PostgreSQL, Redis, upload volume, and health checks.
+- Root `.env.production.example` for deployment configuration.
+- Frontend Docker image with Nginx static hosting and SPA route fallback.
+- Production deployment guide with build, migration, startup, verification, rollback, and operations checklist.
+
 ## v0.2.0 - 2026-07-01
 
 RentCity `v0.2.0` is the first integrated full-stack release candidate.
