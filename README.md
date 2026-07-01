@@ -117,6 +117,17 @@ cmd /c npm run preview
 
 `npm run check` chạy TypeScript, ESLint và production build.
 
+## E2E Test
+
+Bộ test tự động nằm ở root repo để kiểm tra được cả frontend và backend contract:
+
+```bash
+cmd /c npm install
+cmd /c npm run e2e
+```
+
+Backend cần chạy trước ở `http://localhost:4000`; Playwright sẽ tự mở frontend ở `http://localhost:4174` nếu port này chưa chạy. Chi tiết luồng test nằm trong `e2e/README.md`.
+
 ## State Và Mock Data
 
 - State tổng nằm trong `src/app/AppProvider.tsx`.
