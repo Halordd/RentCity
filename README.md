@@ -36,6 +36,8 @@ e2e/                       Playwright tests cho các luồng chính
 .github/workflows/         CI chạy frontend, backend và full-stack E2E
 ```
 
+Local full-stack setup lives in `docs/local-development.md`.
+
 ## Workflow
 
 ```mermaid
