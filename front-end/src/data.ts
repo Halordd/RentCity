@@ -1,11 +1,11 @@
 import type { AdminRows, Listing } from "./types";
 
 export const assets = {
-  apartment: "/.rentcity-assets/rentcity-apartment.jpg",
-  bedroom: "/.rentcity-assets/rentcity-bedroom.jpg",
-  building: "/.rentcity-assets/rentcity-building.jpg",
-  house: "/.rentcity-assets/rentcity-house.jpg",
-  livingroom: "/.rentcity-assets/rentcity-livingroom.jpg"
+  apartment: "/rentcity-assets/rentcity-apartment.jpg",
+  bedroom: "/rentcity-assets/rentcity-bedroom.jpg",
+  building: "/rentcity-assets/rentcity-building.jpg",
+  house: "/rentcity-assets/rentcity-house.jpg",
+  livingroom: "/rentcity-assets/rentcity-livingroom.jpg"
 };
 
 export const listings: Listing[] = [
