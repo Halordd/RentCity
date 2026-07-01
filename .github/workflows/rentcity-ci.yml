@@ -1,0 +1,239 @@
+name: RentCity CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+      - developer/front-end
+      - developer/back-end
+      - stagging
+      - "release/**"
+  workflow_dispatch:
+
+concurrency:
+  group: rentcity-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    name: Detect workspaces
+    runs-on: ubuntu-latest
+    outputs:
+      has_frontend: ${{ steps.paths.outputs.has_frontend }}
+      has_backend: ${{ steps.paths.outputs.has_backend }}
+      has_e2e: ${{ steps.paths.outputs.has_e2e }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect project folders
+        id: paths
+        shell: bash
+        run: |
+          [[ -f front-end/package.json ]] && echo "has_frontend=true" >> "$GITHUB_OUTPUT" || echo "has_frontend=false" >> "$GITHUB_OUTPUT"
+          [[ -f back-end/package.json ]] && echo "has_backend=true" >> "$GITHUB_OUTPUT" || echo "has_backend=false" >> "$GITHUB_OUTPUT"
+          [[ -f package.json && -f playwright.config.ts ]] && echo "has_e2e=true" >> "$GITHUB_OUTPUT" || echo "has_e2e=false" >> "$GITHUB_OUTPUT"
+
+  frontend:
+    name: Frontend quality gate
+    needs: detect
+    if: needs.detect.outputs.has_frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: front-end
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: front-end/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Typecheck, lint, and production build
+        run: npm run check
+
+  backend:
+    name: Backend quality gate
+    needs: detect
+    if: needs.detect.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: rentcity
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rentcity"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: back-end
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rentcity?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-jwt-secret-change-before-production
+      PAYMENT_WEBHOOK_SECRET: ci-payment-webhook-secret
+      FRONTEND_ORIGINS: http://localhost:4174,http://127.0.0.1:4174
+      API_DOCS_ENABLED: "true"
+      NODE_ENV: development
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: back-end/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Validate and apply database migrations
+        run: |
+          npm run prisma:generate
+          npm run prisma:validate
+          npm run prisma:deploy
+
+      - name: Typecheck, lint, build, unit test, and audit
+        run: npm run ci
+
+  e2e:
+    name: Full-stack E2E
+    needs:
+      - detect
+      - frontend
+      - backend
+    if: always() && needs.detect.outputs.has_frontend == 'true' && needs.detect.outputs.has_backend == 'true' && needs.detect.outputs.has_e2e == 'true' && needs.frontend.result == 'success' && needs.backend.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: rentcity
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rentcity"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rentcity?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-jwt-secret-change-before-production
+      PAYMENT_WEBHOOK_SECRET: ci-payment-webhook-secret
+      FRONTEND_ORIGINS: http://localhost:4174,http://127.0.0.1:4174
+      API_DOCS_ENABLED: "true"
+      NODE_ENV: development
+      E2E_BACKEND_URL: http://localhost:4000
+      E2E_FRONTEND_URL: http://localhost:4174
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            front-end/package-lock.json
+            back-end/package-lock.json
+
+      - name: Install root E2E dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: front-end
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: back-end
+        run: npm ci
+
+      - name: Prepare backend database
+        working-directory: back-end
+        run: |
+          npm run prisma:generate
+          npm run prisma:deploy
+          npm run seed
+
+      - name: Build backend
+        working-directory: back-end
+        run: npm run build
+
+      - name: Start backend API
+        working-directory: back-end
+        run: |
+          npm run start:prod > ../backend.log 2>&1 &
+          echo $! > ../backend.pid
+
+      - name: Wait for backend readiness
+        shell: bash
+        run: |
+          for attempt in {1..60}; do
+            if curl -fsS "$E2E_BACKEND_URL/health/ready"; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat backend.log
+          exit 1
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E test suite
+        run: npm run e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+            backend.log
+          if-no-files-found: ignore

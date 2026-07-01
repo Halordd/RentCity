@@ -128,6 +128,14 @@ cmd /c npm run e2e
 
 Backend cần chạy trước ở `http://localhost:4000`; Playwright sẽ tự mở frontend ở `http://localhost:4174` nếu port này chưa chạy. Chi tiết luồng test nằm trong `e2e/README.md`.
 
+## CI Pipeline
+
+GitHub Actions nằm ở `.github/workflows/rentcity-ci.yml`. Pipeline tự phát hiện workspace:
+
+- Có `front-end/package.json` thì chạy frontend quality gate.
+- Có `back-end/package.json` thì chạy backend quality gate với Postgres và Redis service.
+- Có đủ frontend, backend và Playwright config thì chạy full-stack E2E.
+
 ## State Và Mock Data
 
 - State tổng nằm trong `src/app/AppProvider.tsx`.
