@@ -14,6 +14,13 @@ RUN npm run prisma:generate
 COPY nest-cli.json tsconfig*.json eslint.config.mjs ./
 COPY src ./src
 RUN npm run build
+
+FROM build AS migrate
+
+CMD ["npm", "run", "prisma:deploy"]
+
+FROM build AS production-deps
+
 RUN npm prune --omit=dev
 
 FROM node:22-alpine AS runtime
@@ -25,9 +32,9 @@ RUN apk add --no-cache openssl \
   && addgroup -S rentcity \
   && adduser -S rentcity -G rentcity
 
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/prisma ./prisma
+COPY --from=production-deps /app/node_modules ./node_modules
+COPY --from=production-deps /app/dist ./dist
+COPY --from=production-deps /app/prisma ./prisma
 COPY public ./public
 COPY package*.json ./
 

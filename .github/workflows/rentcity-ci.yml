@@ -367,7 +367,29 @@ jobs:
         run: docker compose --env-file .env.production.example -f docker-compose.production.yml config
 
       - name: Build production frontend and backend images
-        run: docker compose --env-file .env.production.example -f docker-compose.production.yml build frontend backend
+        run: docker compose --env-file .env.production.example -f docker-compose.production.yml build migrate frontend backend
+
+      - name: Start production compose stack
+        run: docker compose --env-file .env.production.example -f docker-compose.production.yml up -d
+
+      - name: Verify production compose stack
+        shell: bash
+        run: |
+          for _ in {1..60}; do
+            if curl -fsS http://localhost:4000/health/ready \
+              && curl -fsS http://localhost:8080/healthz \
+              && curl -fsS http://localhost:4000/listings; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose --env-file .env.production.example -f docker-compose.production.yml ps
+          docker compose --env-file .env.production.example -f docker-compose.production.yml logs --no-color
+          exit 1
+
+      - name: Stop production compose stack
+        if: always()
+        run: docker compose --env-file .env.production.example -f docker-compose.production.yml down -v --remove-orphans
 
   release_readiness:
     name: Release readiness

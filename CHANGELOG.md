@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.9 - 2026-07-02
+
+### Added
+
+- Production Docker compose now runs a dedicated Prisma migration container before starting the backend.
+- CI now starts the production compose stack and verifies backend readiness, frontend health, and the listings API after Docker build.
+
+### Changed
+
+- Production security E2E can verify the allowed CORS origin from `E2E_ALLOWED_ORIGIN` while keeping the existing `http://localhost:4174` default.
+
 ## v0.2.8 - 2026-07-02
 
 ### Fixed

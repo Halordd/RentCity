@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { backendUrl, uniqueVietnamPhone } from "./helpers/api";
 
 const productionSecurityEnabled = process.env.E2E_PRODUCTION_SECURITY === "true";
+const allowedOrigin = process.env.E2E_ALLOWED_ORIGIN || "http://localhost:4174";
 
 test.describe("production backend security", () => {
   test.beforeEach(async ({}, testInfo) => {
@@ -11,7 +12,7 @@ test.describe("production backend security", () => {
 
   test("sets security headers and only echoes allowed CORS origins", async ({ request }) => {
     const allowed = await request.get(`${backendUrl}/health`, {
-      headers: { Origin: "http://localhost:4174" }
+      headers: { Origin: allowedOrigin }
     });
     await expect(allowed).toBeOK();
 
@@ -21,7 +22,7 @@ test.describe("production backend security", () => {
     expect(allowedHeaders["x-content-type-options"]).toBe("nosniff");
     expect(allowedHeaders["x-frame-options"]).toBe("SAMEORIGIN");
     expect(allowedHeaders["cross-origin-resource-policy"]).toBe("cross-origin");
-    expect(allowedHeaders["access-control-allow-origin"]).toBe("http://localhost:4174");
+    expect(allowedHeaders["access-control-allow-origin"]).toBe(allowedOrigin);
     expect(allowedHeaders["access-control-allow-credentials"]).toBe("true");
 
     const blocked = await request.get(`${backendUrl}/health`, {

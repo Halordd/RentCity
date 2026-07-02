@@ -1382,7 +1382,7 @@
   "info": {
     "title": "RentCity Backend API",
     "description": "REST API contract for RentCity web, mobile app, and phone-based web app clients.",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "contact": {}
   },
   "tags": [],
