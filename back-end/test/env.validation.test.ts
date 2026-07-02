@@ -42,13 +42,44 @@ test("env validation parses provider and API docs flags", () => {
     API_DOCS_ENABLED: "false",
     SMS_PROVIDER: "twilio",
     PAYMENT_PROVIDER: "payos",
-    STORAGE_PROVIDER: "s3",
+    STORAGE_PROVIDER: "local",
     LOCAL_PAYMENT_CHECKOUT_BASE_URL: "http://localhost:4000/pay"
   });
 
   assert.equal(env.API_DOCS_ENABLED, false);
   assert.equal(env.SMS_PROVIDER, "twilio");
   assert.equal(env.PAYMENT_PROVIDER, "payos");
-  assert.equal(env.STORAGE_PROVIDER, "s3");
+  assert.equal(env.STORAGE_PROVIDER, "local");
   assert.equal(env.LOCAL_PAYMENT_CHECKOUT_BASE_URL, "http://localhost:4000/pay");
+});
+
+test("env validation rejects unsupported storage providers", () => {
+  assert.throws(() => validateEnv({ ...baseEnv, STORAGE_PROVIDER: "aws" }), /STORAGE_PROVIDER/);
+});
+
+test("env validation requires S3 settings when S3 storage is selected", () => {
+  assert.throws(() => validateEnv({ ...baseEnv, STORAGE_PROVIDER: "s3" }), /S3_BUCKET/);
+});
+
+test("env validation parses S3 storage settings", () => {
+  const env = validateEnv({
+    ...baseEnv,
+    STORAGE_PROVIDER: "s3",
+    S3_BUCKET: "rentcity-uploads",
+    S3_REGION: "ap-southeast-1",
+    S3_ENDPOINT: "http://localhost:9000",
+    S3_ACCESS_KEY_ID: "access-key",
+    S3_SECRET_ACCESS_KEY: "secret-key",
+    S3_PUBLIC_BASE_URL: "https://cdn.rentcity.test/uploads",
+    S3_FORCE_PATH_STYLE: "true",
+    S3_UPLOAD_EXPIRES_SECONDS: "900"
+  });
+
+  assert.equal(env.STORAGE_PROVIDER, "s3");
+  assert.equal(env.S3_BUCKET, "rentcity-uploads");
+  assert.equal(env.S3_REGION, "ap-southeast-1");
+  assert.equal(env.S3_ENDPOINT, "http://localhost:9000");
+  assert.equal(env.S3_PUBLIC_BASE_URL, "https://cdn.rentcity.test/uploads");
+  assert.equal(env.S3_FORCE_PATH_STYLE, true);
+  assert.equal(env.S3_UPLOAD_EXPIRES_SECONDS, 900);
 });

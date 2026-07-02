@@ -22,7 +22,8 @@ Edit `.env.production` before deploying:
 - Change `JWT_SECRET`.
 - Change `PAYMENT_WEBHOOK_SECRET`.
 - Set `FRONTEND_ORIGINS` to the real frontend domain.
-- Set `VITE_API_BASE_URL` and `UPLOAD_PUBLIC_BASE_URL` to the public backend URL.
+- Set `VITE_API_BASE_URL`, `UPLOAD_PUBLIC_BASE_URL`, and `S3_PUBLIC_BASE_URL` to the deployed public URLs.
+- If `STORAGE_PROVIDER=s3`, set `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and optional `S3_ENDPOINT`.
 - Keep `API_DOCS_ENABLED=false` unless API docs should be public.
 
 For real transactions, replace local providers:
@@ -33,7 +34,7 @@ PAYMENT_PROVIDER=payos
 STORAGE_PROVIDER=s3
 ```
 
-Those real adapters still need provider credentials and implementation before production money or identity flows go live.
+The S3-compatible storage adapter is implemented for listing image upload intents. SMS, payment settlement, push/email delivery, storage bucket policies, and private document access rules still need real provider credentials and operational setup before production money or identity flows go live.
 
 ## 2. Build Images
 
@@ -122,20 +123,37 @@ For local/staging resets only:
 docker compose --env-file .env.production -f docker-compose.production.yml down -v --remove-orphans
 ```
 
-## 7. Rollback
+## 7. Clean Local Docker Build History
+
+Docker Desktop shows one build record every time `docker compose build` runs. Clean local build history and build cache when old records are no longer needed:
+
+```bash
+npm run docker:clean
+```
+
+Equivalent Docker commands:
+
+```bash
+docker buildx history rm --all
+docker buildx prune -af
+```
+
+This only cleans local Docker build records/cache. It does not remove Git history or source files.
+
+## 8. Rollback
 
 Checkout a release tag and rebuild:
 
 ```bash
 git fetch --tags
-git checkout v0.2.9
+git checkout v0.2.10
 docker compose --env-file .env.production -f docker-compose.production.yml build migrate frontend backend
 docker compose --env-file .env.production -f docker-compose.production.yml up -d
 ```
 
 Database rollbacks are not automatic. Prefer forward-fix migrations unless a manual database rollback plan has been tested.
 
-## 8. Operations Checklist
+## 9. Operations Checklist
 
 - `JWT_SECRET` is rotated and stored outside Git.
 - `PAYMENT_WEBHOOK_SECRET` is set and not shared with frontend code.

@@ -21,6 +21,14 @@ STORAGE_PROVIDER=s3
 PAYMENT_WEBHOOK_SECRET=replace-with-payment-webhook-secret
 LOCAL_PAYMENT_CHECKOUT_BASE_URL=
 UPLOAD_PUBLIC_BASE_URL=https://cdn.rentcity.vn/uploads
+S3_BUCKET=rentcity-uploads
+S3_REGION=ap-southeast-1
+S3_ENDPOINT=
+S3_ACCESS_KEY_ID=replace-with-storage-access-key
+S3_SECRET_ACCESS_KEY=replace-with-storage-secret-key
+S3_PUBLIC_BASE_URL=https://cdn.rentcity.vn/uploads
+S3_FORCE_PATH_STYLE=false
+S3_UPLOAD_EXPIRES_SECONDS=600
 REDIS_URL=redis://HOST:6379
 ```
 
@@ -82,12 +90,13 @@ docker compose --env-file .env.production -f docker-compose.production.yml up -d
 - Keep `/api-docs` disabled in production unless the API contract should be public.
 - Configure frontend apps with the deployed API base URL.
 - Configure Redis before accepting OTP traffic so request limits are shared across instances.
-- Configure SMS, storage, payment, email, and push adapters before accepting real transactions.
+- Configure SMS, payment, email, push, and production storage bucket policies before accepting real transactions.
+- Confirm `STORAGE_PROVIDER=s3` can return a presigned upload URL and the uploaded object is readable through `S3_PUBLIC_BASE_URL`.
 
 ## External Providers Still Needed
 
 - SMS OTP provider.
-- Image/file storage.
+- Object storage credentials, bucket policy, CDN/domain, and lifecycle/backup rules.
 - Payment gateway and signed webhook verification.
 - Push notification service.
 - Email or contract delivery provider.

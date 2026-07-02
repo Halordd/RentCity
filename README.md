@@ -42,12 +42,12 @@ CI/CD notes live in `docs/ci-cd.md`.
 
 ## Trạng Thái Release
 
-Release hiện tại: `v0.2.9`.
+Release hiện tại: `v0.2.10`.
 
-- Frontend, backend, E2E và Docker production package đã pass GitHub Actions trên commit `83f438e`.
+- Frontend, backend, E2E và Docker production package phải pass GitHub Actions trước khi merge/deploy.
 - Production Docker Compose đã có service `migrate` để chạy Prisma migrations trước khi backend start.
 - `Production Docker package` trong CI hiện build image, bật stack thật, kiểm tra `/health/ready`, `/healthz` và `/listings`.
-- Docker local nên được xem là tài nguyên tạm: build history, image, container, volume có thể xóa sau khi test xong.
+- Docker local nên được xem là tài nguyên tạm: build history/cache có thể dọn bằng `npm run docker:clean` sau khi test xong.
 
 ## Workflow
 

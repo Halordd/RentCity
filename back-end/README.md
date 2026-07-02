@@ -20,6 +20,7 @@ Backend for the RentCity rental platform. This service is organized as a modular
 - Operations: request ids, consistent error payloads, liveness/readiness checks
 - API contract: OpenAPI at `/api-docs` and `/api-docs.json`
 - Rate limiting: Redis-backed OTP request limits when `REDIS_URL` is configured
+- Storage: local upload intent provider for development and S3-compatible presigned PUT uploads for production
 
 ## Backend Architecture
 
@@ -122,6 +123,22 @@ STORAGE_PROVIDER="local"
 REDIS_URL="redis://localhost:6379"
 ```
 
+For production object storage, set:
+
+```text
+STORAGE_PROVIDER="s3"
+S3_BUCKET="rentcity-uploads"
+S3_REGION="ap-southeast-1"
+S3_ENDPOINT=""
+S3_ACCESS_KEY_ID="..."
+S3_SECRET_ACCESS_KEY="..."
+S3_PUBLIC_BASE_URL="https://cdn.rentcity.vn/uploads"
+S3_FORCE_PATH_STYLE=false
+S3_UPLOAD_EXPIRES_SECONDS=600
+```
+
+`S3_ENDPOINT` and `S3_FORCE_PATH_STYLE=true` support S3-compatible providers such as MinIO, Cloudflare R2, or other object storage services.
+
 Production deployment notes are in `docs/deployment.md`.
 
 ## MVP Modules
@@ -174,4 +191,4 @@ API responses should keep stable fields:
 
 ## Notes
 
-This backend now has a production-ready service foundation: guarded routes, DTO validation, Prisma data access, env validation, Docker build, migration path, and seed data. Real external adapters are still needed for SMS OTP delivery, file storage, payment verification, push notifications, and observability before handling real transactions.
+This backend now has a production-ready service foundation: guarded routes, DTO validation, Prisma data access, env validation, Docker build, migration path, seed data, and S3-compatible listing image uploads. Real external adapters are still needed for SMS OTP delivery, payment settlement/reconciliation, push notifications, private document storage policies, and observability before handling real transactions.

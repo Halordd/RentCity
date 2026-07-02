@@ -2,12 +2,13 @@ name: RentCity CI
 
 on:
   pull_request:
+    branches:
+      - main
+      - develop
   push:
     branches:
       - main
       - develop
-      - developer/front-end
-      - developer/back-end
   workflow_dispatch:
 
 permissions:
@@ -117,7 +118,7 @@ jobs:
           cache-dependency-path: back-end/package-lock.json
 
       - name: Install backend dependencies
-        run: npm ci
+        run: npm ci --include=dev
 
       - name: Validate and apply database migrations
         run: |
@@ -190,7 +191,7 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: back-end
-        run: npm ci
+        run: npm ci --include=dev
 
       - name: Prepare backend database
         working-directory: back-end
@@ -302,7 +303,7 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: back-end
-        run: npm ci
+        run: npm ci --include=dev
 
       - name: Prepare backend database
         working-directory: back-end

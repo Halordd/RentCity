@@ -28,11 +28,9 @@ Push CI is intentionally limited to:
 ```text
 main
 develop
-developer/front-end
-developer/back-end
 ```
 
-Release branches, `stagging`, and tags are not push triggers. This keeps one release commit from creating duplicate CI runs across several refs. Pull requests and manual `workflow_dispatch` still run the same workflow.
+Developer branches, release branches, `stagging`, and tags are not push triggers. This keeps one release commit from creating duplicate CI runs across several refs. Pull requests into `main` or `develop` and manual `workflow_dispatch` still run the same workflow.
 
 ## Branch Protection Setup
 

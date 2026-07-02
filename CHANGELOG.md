@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.2.10 - 2026-07-02
+
+### Added
+
+- S3-compatible listing image upload provider with presigned PUT upload intents.
+- Shared upload validation for local and S3 storage providers, including allowed image content types and stable listing object keys.
+- Environment validation for S3 bucket, region, credentials, public base URL, endpoint, force-path-style, and presigned URL expiry.
+- Backend unit coverage for local upload intents, S3 presigned upload intents, invalid upload content types, and storage env validation.
+
+### Changed
+
+- Production Compose and env examples now expose S3 storage settings for real object storage providers such as AWS S3, Cloudflare R2, MinIO, or compatible services.
+
 ## v0.2.9 - 2026-07-02
 
 ### Added

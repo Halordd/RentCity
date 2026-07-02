@@ -8,6 +8,7 @@ import { RedisRateLimitStore } from "./rate-limit/redis-rate-limit.store";
 import { LocalSmsProvider } from "./sms/local-sms.provider";
 import { SMS_PROVIDER } from "./sms/sms-provider.interface";
 import { LocalStorageProvider } from "./storage/local-storage.provider";
+import { S3StorageProvider } from "./storage/s3-storage.provider";
 import { STORAGE_PROVIDER } from "./storage/storage-provider.interface";
 
 @Module({
@@ -15,6 +16,7 @@ import { STORAGE_PROVIDER } from "./storage/storage-provider.interface";
     LocalSmsProvider,
     LocalPaymentGateway,
     LocalStorageProvider,
+    S3StorageProvider,
     MemoryRateLimitStore,
     RedisRateLimitStore,
     {
@@ -27,7 +29,9 @@ import { STORAGE_PROVIDER } from "./storage/storage-provider.interface";
     },
     {
       provide: STORAGE_PROVIDER,
-      useExisting: LocalStorageProvider
+      inject: [ConfigService, LocalStorageProvider, S3StorageProvider],
+      useFactory: (config: ConfigService, localStorage: LocalStorageProvider, s3Storage: S3StorageProvider) =>
+        config.get<string>("STORAGE_PROVIDER") === "s3" ? s3Storage : localStorage
     },
     {
       provide: RATE_LIMIT_STORE,

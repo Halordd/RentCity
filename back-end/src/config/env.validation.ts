@@ -15,6 +15,14 @@ type ValidatedEnv = {
   PAYMENT_WEBHOOK_SECRET?: string;
   LOCAL_PAYMENT_CHECKOUT_BASE_URL?: string;
   UPLOAD_PUBLIC_BASE_URL?: string;
+  S3_BUCKET?: string;
+  S3_REGION?: string;
+  S3_ENDPOINT?: string;
+  S3_ACCESS_KEY_ID?: string;
+  S3_SECRET_ACCESS_KEY?: string;
+  S3_PUBLIC_BASE_URL?: string;
+  S3_FORCE_PATH_STYLE: boolean;
+  S3_UPLOAD_EXPIRES_SECONDS: number;
   REDIS_URL?: string;
   NODE_ENV?: string;
 };
@@ -44,6 +52,16 @@ function parseSeconds(value: string): number {
 
   if (!Number.isInteger(seconds) || seconds < 60 || seconds > 3600) {
     throw new Error("OTP_TTL_SECONDS must be an integer between 60 and 3600.");
+  }
+
+  return seconds;
+}
+
+function parseUploadExpiresSeconds(value: string): number {
+  const seconds = Number(value);
+
+  if (!Number.isInteger(seconds) || seconds < 60 || seconds > 3600) {
+    throw new Error("S3_UPLOAD_EXPIRES_SECONDS must be an integer between 60 and 3600.");
   }
 
   return seconds;
@@ -83,6 +101,26 @@ function assertOrigins(value: string): void {
   }
 }
 
+function assertStorageProviderEnv(env: Env, provider: string): void {
+  if (!["local", "s3"].includes(provider)) {
+    throw new Error("STORAGE_PROVIDER must be either local or s3.");
+  }
+
+  if (provider !== "s3") return;
+
+  required(env, "S3_BUCKET");
+  required(env, "S3_REGION");
+  required(env, "S3_ACCESS_KEY_ID");
+  required(env, "S3_SECRET_ACCESS_KEY");
+  const publicBaseUrl = required(env, "S3_PUBLIC_BASE_URL");
+
+  assertUrl(publicBaseUrl, "S3_PUBLIC_BASE_URL");
+
+  if (env.S3_ENDPOINT) {
+    assertUrl(env.S3_ENDPOINT, "S3_ENDPOINT");
+  }
+}
+
 export function validateEnv(env: Env): ValidatedEnv {
   const databaseUrl = required(env, "DATABASE_URL");
   const jwtSecret = required(env, "JWT_SECRET");
@@ -115,6 +153,8 @@ export function validateEnv(env: Env): ValidatedEnv {
     assertUrl(env.LOCAL_PAYMENT_CHECKOUT_BASE_URL, "LOCAL_PAYMENT_CHECKOUT_BASE_URL");
   }
 
+  assertStorageProviderEnv(env, storageProvider);
+
   if (env.REDIS_URL) {
     assertUrl(env.REDIS_URL, "REDIS_URL");
   }
@@ -135,6 +175,14 @@ export function validateEnv(env: Env): ValidatedEnv {
     PAYMENT_WEBHOOK_SECRET: env.PAYMENT_WEBHOOK_SECRET?.trim(),
     LOCAL_PAYMENT_CHECKOUT_BASE_URL: env.LOCAL_PAYMENT_CHECKOUT_BASE_URL?.trim(),
     UPLOAD_PUBLIC_BASE_URL: env.UPLOAD_PUBLIC_BASE_URL?.trim(),
+    S3_BUCKET: env.S3_BUCKET?.trim(),
+    S3_REGION: env.S3_REGION?.trim(),
+    S3_ENDPOINT: env.S3_ENDPOINT?.trim(),
+    S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID?.trim(),
+    S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY?.trim(),
+    S3_PUBLIC_BASE_URL: env.S3_PUBLIC_BASE_URL?.trim(),
+    S3_FORCE_PATH_STYLE: parseBoolean(env.S3_FORCE_PATH_STYLE, false),
+    S3_UPLOAD_EXPIRES_SECONDS: parseUploadExpiresSeconds(env.S3_UPLOAD_EXPIRES_SECONDS?.trim() || "600"),
     REDIS_URL: env.REDIS_URL?.trim(),
     NODE_ENV: nodeEnv
   };
