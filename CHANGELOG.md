@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.8 - 2026-07-02
+
+### Fixed
+
+- Production security CI no longer runs dependency installation and seed steps under `NODE_ENV=production`, so dev-only tooling such as `ts-node` is available before the production backend starts.
+
 ## v0.2.7 - 2026-07-02
 
 ### Changed
