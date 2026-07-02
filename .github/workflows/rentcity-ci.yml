@@ -8,9 +8,6 @@ on:
       - develop
       - developer/front-end
       - developer/back-end
-      - stagging
-    tags:
-      - "v*"
   workflow_dispatch:
 
 permissions:

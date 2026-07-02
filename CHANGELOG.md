@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.7 - 2026-07-02
+
+### Changed
+
+- CI push triggers now run only on development branches and `main`; `stagging` and release tags no longer create duplicate workflow runs for the same commit.
+
 ## v0.2.6 - 2026-07-02
 
 ### Changed
