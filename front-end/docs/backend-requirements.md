@@ -2,6 +2,37 @@
 
 Tài liệu này liệt kê phần backend cần làm để nối với frontend RentCity. Frontend hiện đã có API client/service layer đọc `VITE_API_BASE_URL`, tự gắn bearer token, thử refresh token khi gặp `401`, và vẫn giữ fallback mock/localStorage khi backend chưa bật.
 
+## Trạng Thái Sau Release `v0.2.9`
+
+Backend hiện đã có nền NestJS + Prisma production foundation:
+
+- Auth OTP local provider, access token, refresh token, logout và `/me`.
+- Public listings search/detail.
+- Saved listings.
+- Booking create/reschedule/cancel và owner confirm.
+- Conversations, messages, read state và unread count.
+- Owner dashboard/listing management cơ bản.
+- Admin metrics, verification queue, listing review, disputes và audit logs.
+- Payments deposit boundary, local checkout intent và signed webhook verification.
+- Contracts draft/lookup.
+- Notifications/app-state/push subscription boundary.
+- OpenAPI contract sinh ra `docs/api/openapi.json` và frontend generated client.
+- Docker production compose có service `migrate` chạy Prisma migrations trước backend.
+- CI đã có frontend gate, backend gate, security gate, full-stack E2E và production Docker runtime smoke.
+
+Những phần vẫn cần làm để đi production thật:
+
+- SMS OTP provider thật và chính sách retry/anti-abuse theo nhà mạng.
+- Payment gateway thật, reconciliation, refund, payout và đối soát kế toán.
+- Storage thật cho ảnh nhà, giấy tờ xác minh, hợp đồng PDF và phân quyền file.
+- Map/geocoding provider thật cho địa chỉ, tọa độ và tìm quanh khu vực.
+- Push/email notification provider thật, template và trạng thái gửi.
+- KYC/verification workflow đầy đủ cho chủ nhà, giấy tờ nhà và audit nội bộ.
+- Observability: structured logs tập trung, metrics, tracing, alerting, dashboard vận hành.
+- Backup/restore PostgreSQL, retention policy cho file và disaster recovery.
+- Admin RBAC chi tiết hơn cho verifier, support, accountant, super admin.
+- Payment/contract frontend integration với API thật và trạng thái giao dịch thật.
+
 ## 1. Auth, User, Role
 
 - Đăng nhập bằng số điện thoại OTP.

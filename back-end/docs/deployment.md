@@ -59,11 +59,14 @@ docker build -t rentcity-backend .
 docker run --env-file .env -p 4000:4000 rentcity-backend
 ```
 
-Run migrations before starting or as a one-off release job:
+For the repository-level production Compose package, use the dedicated migration target instead of the runtime image:
 
 ```bash
-docker run --env-file .env rentcity-backend npx prisma migrate deploy
+docker compose --env-file .env.production -f docker-compose.production.yml build migrate backend
+docker compose --env-file .env.production -f docker-compose.production.yml up -d
 ```
+
+`docker-compose.production.yml` starts `migrate` after PostgreSQL is healthy and starts `backend` only after the migration job exits successfully. The runtime backend image intentionally prunes dev dependencies, so it should not be used for ad hoc Prisma CLI commands.
 
 ## Release Checklist
 
@@ -71,9 +74,10 @@ docker run --env-file .env rentcity-backend npx prisma migrate deploy
 - Rotate `JWT_SECRET` away from local examples.
 - Set `PAYMENT_WEBHOOK_SECRET` and verify provider callbacks with `x-rentcity-signature`.
 - Ensure payment providers send a stable event id; RentCity stores webhook events idempotently.
-- Run `npm run prisma:deploy`.
+- Confirm the production Compose `migrate` job completed successfully or run `npm run prisma:deploy` in the deployment environment before the backend starts.
 - Confirm `/health` responds after deploy.
 - Confirm `/health/ready` can reach the production database.
+- Confirm `/listings` returns `200`; an empty list is acceptable before public listings are created.
 - Confirm error logs include the same request id returned in `x-request-id`.
 - Keep `/api-docs` disabled in production unless the API contract should be public.
 - Configure frontend apps with the deployed API base URL.

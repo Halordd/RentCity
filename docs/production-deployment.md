@@ -4,6 +4,7 @@ This package deploys the RentCity release as Docker services:
 
 - `frontend`: Nginx static hosting for the Vite build with SPA fallback.
 - `backend`: NestJS API server.
+- `migrate`: one-shot Prisma migration job that must finish before the backend starts.
 - `postgres`: PostgreSQL database.
 - `redis`: OTP/session/rate-limit backing store.
 
@@ -37,36 +38,40 @@ Those real adapters still need provider credentials and implementation before pr
 ## 2. Build Images
 
 ```bash
-docker compose --env-file .env.production -f docker-compose.production.yml build
+docker compose --env-file .env.production -f docker-compose.production.yml build migrate frontend backend
 ```
 
-## 3. Run Database Migrations
+The backend image has two production targets:
 
-Start database dependencies:
+- `migrate`: keeps the Prisma CLI available and runs `prisma migrate deploy`.
+- `runtime`: prunes dev dependencies and runs only the NestJS API.
 
-```bash
-docker compose --env-file .env.production -f docker-compose.production.yml up -d postgres redis
-```
-
-Run migrations as a one-off release job:
-
-```bash
-docker compose --env-file .env.production -f docker-compose.production.yml run --rm backend npx prisma migrate deploy
-```
-
-Seed only staging/demo environments:
-
-```bash
-docker compose --env-file .env.production -f docker-compose.production.yml run --rm backend npm run seed
-```
-
-Do not seed production after real users exist unless the seed is explicitly designed to be idempotent for production.
-
-## 4. Start Services
+## 3. Start Services
 
 ```bash
 docker compose --env-file .env.production -f docker-compose.production.yml up -d
 ```
+
+On startup, Compose runs this order:
+
+1. `postgres` and `redis` become healthy.
+2. `migrate` applies all Prisma migrations and exits successfully.
+3. `backend` starts only after `migrate` has completed.
+4. `frontend` starts only after `backend` is healthy.
+
+Do not run schema changes manually inside the runtime backend container. The runtime image intentionally omits dev-only tooling.
+
+## 4. Optional Seed For Staging Or Demo
+
+Seed only staging/demo environments:
+
+```bash
+docker compose --env-file .env.production -f docker-compose.production.yml run --rm migrate npm run seed
+```
+
+Do not seed production after real users exist unless the seed is explicitly designed to be safe for production.
+
+## 5. Verify
 
 Default local production URLs:
 
@@ -76,13 +81,26 @@ Backend:  http://localhost:4000
 Health:   http://localhost:4000/health/ready
 ```
 
-## 5. Verify
+Health and API smoke:
 
 ```bash
 docker compose --env-file .env.production -f docker-compose.production.yml ps
 curl http://localhost:4000/health
 curl http://localhost:4000/health/ready
+curl http://localhost:4000/listings
 curl http://localhost:8080/healthz
+```
+
+Migration logs:
+
+```bash
+docker compose --env-file .env.production -f docker-compose.production.yml logs migrate
+```
+
+An unseeded production database can validly return an empty listing response:
+
+```json
+{"data":{"items":[],"page":1,"limit":20,"total":0}}
 ```
 
 Browser smoke:
@@ -92,20 +110,32 @@ Browser smoke:
 - Open a listing detail.
 - Request OTP in a non-production SMS provider environment only.
 
-## 6. Rollback
+## 6. Stop
+
+```bash
+docker compose --env-file .env.production -f docker-compose.production.yml down
+```
+
+For local/staging resets only:
+
+```bash
+docker compose --env-file .env.production -f docker-compose.production.yml down -v --remove-orphans
+```
+
+## 7. Rollback
 
 Checkout a release tag and rebuild:
 
 ```bash
 git fetch --tags
-git checkout v0.2.0
-docker compose --env-file .env.production -f docker-compose.production.yml build
+git checkout v0.2.9
+docker compose --env-file .env.production -f docker-compose.production.yml build migrate frontend backend
 docker compose --env-file .env.production -f docker-compose.production.yml up -d
 ```
 
 Database rollbacks are not automatic. Prefer forward-fix migrations unless a manual database rollback plan has been tested.
 
-## 7. Operations Checklist
+## 8. Operations Checklist
 
 - `JWT_SECRET` is rotated and stored outside Git.
 - `PAYMENT_WEBHOOK_SECRET` is set and not shared with frontend code.
@@ -117,3 +147,5 @@ Database rollbacks are not automatic. Prefer forward-fix migrations unless a man
 - TLS and reverse proxy are configured outside this compose file.
 - CORS `FRONTEND_ORIGINS` matches deployed frontend domains.
 - API docs are disabled for public production.
+- The `migrate` service completed successfully for the deployed release.
+- The `/listings` smoke check returns `200`, even if the database has no public listings yet.

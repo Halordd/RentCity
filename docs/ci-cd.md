@@ -19,7 +19,20 @@ That final job fails unless every production gate below succeeds.
 - `API contract check`: runs inside the backend gate and fails if `docs/api/openapi.json` is not generated from the current NestJS controllers and DTOs.
 - `Production security gate`: starts the backend with `NODE_ENV=production` and verifies security headers, CORS allowlist behavior, disabled OpenAPI docs, hidden OTP dev codes, and signed payment webhooks.
 - `Full-stack E2E`: starts real backend services and runs the Playwright flows for web, app, web_app, owner, admin, backend contract, and permissions.
-- `Production Docker package`: validates `docker-compose.production.yml` and builds the production frontend/backend Docker images.
+- `Production Docker package`: validates `docker-compose.production.yml`, builds `migrate`, `frontend`, and `backend`, starts the production Compose stack, verifies backend readiness, frontend health, and `GET /listings`, then tears the stack down.
+
+## Push Triggers
+
+Push CI is intentionally limited to:
+
+```text
+main
+develop
+developer/front-end
+developer/back-end
+```
+
+Release branches, `stagging`, and tags are not push triggers. This keeps one release commit from creating duplicate CI runs across several refs. Pull requests and manual `workflow_dispatch` still run the same workflow.
 
 ## Branch Protection Setup
 
@@ -45,7 +58,8 @@ Recommended GitHub settings:
 
 1. Merge completed work into `develop`.
 2. Create a `release/vX.Y.Z` branch from `develop`.
-3. Let `Release readiness` pass.
-4. Fast-forward `stagging` from the release branch.
+3. Push the release commit to `develop` and let `Release readiness` pass.
+4. Fast-forward `stagging` from the verified release commit.
 5. Tag the release as `vX.Y.Z`.
-6. Promote to `main` only after staging validation.
+6. Keep only the newest active `release/vX.Y.Z` branch; older release tags remain as immutable history.
+7. Promote to `main` only after staging validation.

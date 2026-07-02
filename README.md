@@ -38,6 +38,16 @@ e2e/                       Playwright tests cho các luồng chính
 
 Local full-stack setup lives in `docs/local-development.md`.
 Production deployment notes live in `docs/production-deployment.md`.
+CI/CD notes live in `docs/ci-cd.md`.
+
+## Trạng Thái Release
+
+Release hiện tại: `v0.2.9`.
+
+- Frontend, backend, E2E và Docker production package đã pass GitHub Actions trên commit `83f438e`.
+- Production Docker Compose đã có service `migrate` để chạy Prisma migrations trước khi backend start.
+- `Production Docker package` trong CI hiện build image, bật stack thật, kiểm tra `/health/ready`, `/healthz` và `/listings`.
+- Docker local nên được xem là tài nguyên tạm: build history, image, container, volume có thể xóa sau khi test xong.
 
 ## Workflow
 
@@ -93,3 +103,5 @@ GitHub Actions tự phát hiện workspace trong repo:
 - Có `front-end/package.json` thì chạy frontend quality gate.
 - Có `back-end/package.json` thì chạy backend quality gate với Postgres và Redis.
 - Có đủ frontend, backend và Playwright config thì chạy full-stack E2E.
+- Có production compose thì build `migrate`, `frontend`, `backend`, chạy stack Docker production và smoke test API/frontend.
+- Job `Release readiness` là gate cuối cùng; job này chỉ xanh khi toàn bộ gate bắt buộc đã pass.
