@@ -9,14 +9,15 @@ on:
       - developer/front-end
       - developer/back-end
       - stagging
-      - "release/**"
+    tags:
+      - "v*"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: rentcity-ci-${{ github.workflow }}-${{ github.ref }}
+  group: rentcity-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -206,6 +207,9 @@ jobs:
         working-directory: back-end
         run: npm run build
 
+      - name: Install Playwright browser
+        run: npm exec -- playwright install --with-deps chromium
+
       - name: Start backend API in production mode
         working-directory: back-end
         run: |
@@ -225,7 +229,7 @@ jobs:
           exit 1
 
       - name: Run production security tests
-        run: npx playwright test e2e/production-security.spec.ts --project=desktop
+        run: npm exec -- playwright test e2e/production-security.spec.ts --project=desktop
 
       - name: Upload production backend log
         if: failure()
@@ -332,7 +336,7 @@ jobs:
           exit 1
 
       - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+        run: npm exec -- playwright install --with-deps chromium
 
       - name: Run E2E test suite
         run: npm run e2e

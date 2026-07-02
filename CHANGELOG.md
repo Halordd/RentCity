@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.6 - 2026-07-02
+
+### Changed
+
+- CI now installs the Playwright Chromium browser in the production security gate before running browser-based security checks.
+- CI push triggers now use release tags instead of release branches to reduce duplicate workflow runs for the same commit.
+- CI concurrency now groups duplicate push runs by commit SHA so repeated branch pushes do not keep multiple redundant runs active.
+- Root package lock metadata is synchronized with the workspace release version.
+
 ## v0.2.5 - 2026-07-02
 
 ### Added
