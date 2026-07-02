@@ -39,7 +39,9 @@ front-end/
     data.ts                      Mock listings, messages, admin rows
     types.ts                     Shared TypeScript models
     utils.ts                     Helper format tiền, route, asset
-    api/httpClient.ts            API client, auth token store, refresh-token retry
+    api/httpClient.ts            Low-level fetch client, auth token store, refresh-token retry
+    api/apiClient.ts             Operation-key API wrapper generated from OpenAPI
+    api/generated.ts             Generated OpenAPI DTOs and endpoint metadata
     app/                         App provider, state, router helper
     components/                  UI components dùng chung
     features/web/                Web desktop
@@ -109,13 +111,15 @@ cmd /c npm start -- --port 4174
 
 ```bash
 cmd /c npm run typecheck
+cmd /c npm run api:generate
+cmd /c npm run api:check
 cmd /c npm run lint
 cmd /c npm run build
 cmd /c npm run check
 cmd /c npm run preview
 ```
 
-`npm run check` chạy TypeScript, ESLint và production build.
+`npm run api:generate` sinh `src/api/generated.ts` từ `../docs/api/openapi.json`. `npm run check` chạy API drift check, TypeScript, ESLint và production build.
 
 ## State, API Và Mock Data
 
@@ -140,6 +144,8 @@ Frontend đã có API client tại:
 
 ```text
 src/api/httpClient.ts
+src/api/apiClient.ts
+src/api/generated.ts
 ```
 
 Biến môi trường:

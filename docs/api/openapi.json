@@ -259,11 +259,7 @@
               "minimum": 1,
               "default": 1,
               "example": 1,
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/Object"
-                }
-              ]
+              "type": "number"
             }
           },
           {
@@ -275,11 +271,7 @@
               "maximum": 100,
               "default": 20,
               "example": 20,
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/Object"
-                }
-              ]
+              "type": "number"
             }
           }
         ],
@@ -1390,7 +1382,7 @@
   "info": {
     "title": "RentCity Backend API",
     "description": "REST API contract for RentCity web, mobile app, and phone-based web app clients.",
-    "version": "0.2.4",
+    "version": "0.2.5",
     "contact": {}
   },
   "tags": [],
@@ -1471,10 +1463,6 @@
             "maxLength": 120
           }
         }
-      },
-      "Object": {
-        "type": "object",
-        "properties": {}
       },
       "CreateBookingDto": {
         "type": "object",

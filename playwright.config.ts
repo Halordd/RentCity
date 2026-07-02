@@ -4,6 +4,7 @@ import path from "node:path";
 const frontendUrl = process.env.E2E_FRONTEND_URL || "http://localhost:4174";
 const backendUrl = process.env.E2E_BACKEND_URL || "http://localhost:4000";
 const skipWebServer = process.env.E2E_SKIP_WEB_SERVER === "true";
+const frontendPort = new URL(frontendUrl).port || "4174";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -30,7 +31,7 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: "npm start -- --port 4174",
+          command: `npm start -- --port ${frontendPort}`,
           cwd: path.join(process.cwd(), "front-end"),
           env: {
             VITE_API_BASE_URL: backendUrl

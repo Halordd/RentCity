@@ -18,6 +18,15 @@ CI verifies it with:
 npm run api:check
 ```
 
+The frontend consumes the same contract through a generated TypeScript client:
+
+```text
+front-end/src/api/generated.ts
+front-end/src/api/apiClient.ts
+```
+
+Frontend service files should call `apiClient` with operation keys such as `GET /listings/{id}` instead of hard-coded URL strings. This keeps route names, path params, query params, and request DTOs tied to `docs/api/openapi.json`.
+
 ## Base Contract
 
 Default local API URL:

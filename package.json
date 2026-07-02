@@ -1,6 +1,6 @@
 {
   "name": "rentcity-e2e",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "type": "module",
   "scripts": {
@@ -22,8 +22,8 @@
     "e2e:headed": "playwright test --headed",
     "e2e:report": "playwright show-report",
     "test:e2e": "playwright test",
-    "api:generate": "npm --prefix back-end run openapi:generate",
-    "api:check": "npm --prefix back-end run openapi:check"
+    "api:generate": "npm --prefix back-end run openapi:generate && npm --prefix front-end run api:generate",
+    "api:check": "npm --prefix back-end run openapi:check && npm --prefix front-end run api:check"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1"

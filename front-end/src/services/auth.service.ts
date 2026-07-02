@@ -1,4 +1,6 @@
-import { authSessionStore, http } from "../api/httpClient";
+import { apiClient } from "../api/apiClient";
+import type { RefreshTokenDto, RequestOtpDto, VerifyOtpDto } from "../api/generated";
+import { authSessionStore } from "../api/httpClient";
 import type { AuthSession, UserProfile } from "../types";
 
 export interface OtpRequestResult {
@@ -12,18 +14,21 @@ export interface OtpRequestResult {
 
 export const authService = {
   requestOtp(phone: string): Promise<OtpRequestResult> {
-    return http.post<OtpRequestResult>("/auth/otp/request", { phone });
+    const body: RequestOtpDto = { phone };
+    return apiClient.post<OtpRequestResult>("POST /auth/otp/request", body);
   },
   async verifyOtp(phone: string, code: string): Promise<AuthSession> {
-    const session = await http.post<AuthSession>("/auth/otp/verify", { phone, code });
+    const body: VerifyOtpDto = { phone, code };
+    const session = await apiClient.post<AuthSession>("POST /auth/otp/verify", body);
     authSessionStore.write(session);
     return session;
   },
   async logout(refreshToken?: string): Promise<void> {
-    await http.post("/auth/logout", { refreshToken });
+    const body: RefreshTokenDto | undefined = refreshToken ? { refreshToken } : undefined;
+    await apiClient.post<void>("POST /auth/logout", body);
     authSessionStore.clear();
   },
   me(): Promise<UserProfile> {
-    return http.get<UserProfile>("/me");
+    return apiClient.get<UserProfile>("GET /me");
   }
 };

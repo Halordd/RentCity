@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.2.5 - 2026-07-02
+
+### Added
+
+- Generated frontend API client from the backend OpenAPI contract.
+- Frontend API drift check that runs before TypeScript, lint, and build checks.
+- Operation-key based frontend service calls for auth, listings, bookings, messages, saved homes, notifications, owner, and admin flows.
+
+### Changed
+
+- Root API contract scripts now regenerate and verify both backend OpenAPI and frontend generated API types.
+- Listing search DTO Swagger metadata now exposes numeric and boolean query parameters correctly.
+
 ## v0.2.4 - 2026-07-01
 
 ### Added

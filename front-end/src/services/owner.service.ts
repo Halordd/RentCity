@@ -1,4 +1,4 @@
-import { http } from "../api/httpClient";
+import { apiClient } from "../api/apiClient";
 
 export interface OwnerDashboardMetricSet {
   managedListings: number;
@@ -36,6 +36,6 @@ export interface OwnerDashboard {
 
 export const ownerService = {
   dashboardRemote(): Promise<OwnerDashboard> {
-    return http.get("/owner/dashboard");
+    return apiClient.get("GET /owner/dashboard");
   }
 };

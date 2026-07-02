@@ -1,5 +1,6 @@
 import { listingById, listings } from "../data";
-import { http } from "../api/httpClient";
+import { apiClient } from "../api/apiClient";
+import type { ApiQuery } from "../api/generated";
 import type { Listing, ListingFilters } from "../types";
 import { mapApiListing, type ApiListing } from "./apiMappers";
 
@@ -7,7 +8,7 @@ interface ListingSearchResponse {
   items: ApiListing[];
 }
 
-function listingSearchQuery(filters: ListingFilters): Record<string, number | string | undefined> {
+function listingSearchQuery(filters: ListingFilters): ApiQuery<"GET /listings"> & Record<string, boolean | number | string | undefined> {
   const budget = filters.budget.toLowerCase();
   const allDistrict = filters.district.toLowerCase() === "tat ca" || filters.district.includes("Táº¥t") || filters.district.includes("Tất");
   return {
@@ -45,11 +46,11 @@ export const listingsService = {
   getById: (id?: string, source: Listing[] = listings): Listing => source.find((item) => item.id === id) || listingById(id),
   saved: (ids: string[], source: Listing[] = listings): Listing[] => source.filter((item) => ids.includes(item.id)),
   async listRemote(filters: ListingFilters): Promise<Listing[]> {
-    const result = await http.get<ListingSearchResponse>("/listings", listingSearchQuery(filters));
+    const result = await apiClient.get<ListingSearchResponse>("GET /listings", { query: listingSearchQuery(filters) });
     return result.items.map((item, index) => mapApiListing(item, index));
   },
   async detailRemote(id: string): Promise<Listing> {
-    const result = await http.get<ApiListing>(`/listings/${id}`);
+    const result = await apiClient.get<ApiListing>("GET /listings/{id}", { params: { id } });
     return mapApiListing(result);
   }
 };

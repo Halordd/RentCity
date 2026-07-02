@@ -1,6 +1,6 @@
 {
   "name": "rentcity-production-frontend",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,9 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "check": "npm run typecheck && npm run lint && npm run build",
+    "api:generate": "node scripts/generate-api-client.mjs",
+    "api:check": "node scripts/generate-api-client.mjs --check",
+    "check": "npm run api:check && npm run typecheck && npm run lint && npm run build",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {

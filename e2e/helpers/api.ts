@@ -21,6 +21,8 @@ type ApiEnvelope<T> = {
   data: T;
 };
 
+const sessionCache = new Map<string, AuthSession>();
+
 export function uniqueVietnamPhone(prefix = "+8491"): string {
   const suffix = String(Date.now()).slice(-7);
   return `${prefix}${suffix}`;
@@ -33,6 +35,9 @@ export async function unwrapJson<T>(response: Awaited<ReturnType<APIRequestConte
 }
 
 export async function loginByOtp(request: APIRequestContext, phone: string): Promise<AuthSession> {
+  const cachedSession = sessionCache.get(phone);
+  if (cachedSession && new Date(cachedSession.refreshExpiresAt).getTime() > Date.now()) return cachedSession;
+
   const otpResponse = await request.post(`${backendUrl}/auth/otp/request`, { data: { phone } });
   const otp = await unwrapJson<{ devCode?: string }>(otpResponse);
   expect(otp.devCode, `Backend must return devCode outside production for ${phone}`).toMatch(/^\d{6}$/);
@@ -40,7 +45,9 @@ export async function loginByOtp(request: APIRequestContext, phone: string): Pro
   const authResponse = await request.post(`${backendUrl}/auth/otp/verify`, {
     data: { phone, code: otp.devCode }
   });
-  return unwrapJson<AuthSession>(authResponse);
+  const session = await unwrapJson<AuthSession>(authResponse);
+  sessionCache.set(phone, session);
+  return session;
 }
 
 export function authHeaders(session: AuthSession): Record<string, string> {

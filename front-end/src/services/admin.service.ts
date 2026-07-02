@@ -1,5 +1,5 @@
 import { adminRows } from "../data";
-import { http } from "../api/httpClient";
+import { apiClient } from "../api/apiClient";
 import type { AdminRows, DataRow } from "../types";
 
 interface AdminListingQueueItem {
@@ -35,12 +35,14 @@ export const adminService: {
   ],
   async rowsRemote() {
     const [metrics, listingQueue, verifications, disputes, auditLogs] = await Promise.all([
-      http.get<Record<string, number>>("/admin/metrics"),
-      http.get<{ items: AdminListingQueueItem[] }>("/admin/listings"),
-      http.get<{ items: Array<{ owner?: { fullName?: string | null; phone?: string | null }; status: string; note?: string | null }> }>("/admin/verifications"),
-      http.get<{ items: Array<{ id: string; title: string; status: string; createdAt?: string }> }>("/admin/disputes"),
-      http.get<{ items: Array<{ createdAt: string; actor?: { fullName?: string | null; phone?: string | null }; action: string; target: string }> }>(
-        "/admin/audit-logs"
+      apiClient.get<Record<string, number>>("GET /admin/metrics"),
+      apiClient.get<{ items: AdminListingQueueItem[] }>("GET /admin/listings"),
+      apiClient.get<{ items: Array<{ owner?: { fullName?: string | null; phone?: string | null }; status: string; note?: string | null }> }>(
+        "GET /admin/verifications"
+      ),
+      apiClient.get<{ items: Array<{ id: string; title: string; status: string; createdAt?: string }> }>("GET /admin/disputes"),
+      apiClient.get<{ items: Array<{ createdAt: string; actor?: { fullName?: string | null; phone?: string | null }; action: string; target: string }> }>(
+        "GET /admin/audit-logs"
       )
     ]);
 

@@ -1,4 +1,5 @@
-import { http } from "../api/httpClient";
+import { apiClient } from "../api/apiClient";
+import type { CreateConversationDto, CreateMessageDto } from "../api/generated";
 import type { Message } from "../types";
 import { mapApiMessage, type ApiMessage } from "./apiMappers";
 
@@ -13,21 +14,25 @@ export interface ApiConversation {
 
 export const messagesService = {
   async conversationsRemote(): Promise<ApiConversation[]> {
-    const result = await http.get<{ items: ApiConversation[] }>("/conversations");
+    const result = await apiClient.get<{ items: ApiConversation[] }>("GET /conversations");
     return result.items;
   },
   async messagesRemote(conversationId: string, currentUserId?: string): Promise<Message[]> {
-    const result = await http.get<{ conversationId: string; items: ApiMessage[] }>(`/conversations/${conversationId}/messages`);
+    const result = await apiClient.get<{ conversationId: string; items: ApiMessage[] }>("GET /conversations/{id}/messages", {
+      params: { id: conversationId }
+    });
     return result.items.map((item) => mapApiMessage(item, currentUserId));
   },
   async sendRemote(conversationId: string, body: string, currentUserId?: string): Promise<Message> {
-    const result = await http.post<ApiMessage>(`/conversations/${conversationId}/messages`, { body });
+    const requestBody: CreateMessageDto = { body };
+    const result = await apiClient.post<ApiMessage>("POST /conversations/{id}/messages", requestBody, { params: { id: conversationId } });
     return mapApiMessage(result, currentUserId);
   },
   markReadRemote(conversationId: string): Promise<{ conversationId: string; readCount: number }> {
-    return http.patch(`/conversations/${conversationId}/read`);
+    return apiClient.patch("PATCH /conversations/{id}/read", undefined, { params: { id: conversationId } });
   },
   createConversationRemote(input: { ownerId: string; listingId?: string }): Promise<ApiConversation> {
-    return http.post("/conversations", input);
+    const body: CreateConversationDto = input;
+    return apiClient.post("POST /conversations", body);
   }
 };
