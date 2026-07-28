@@ -1,6 +1,8 @@
 import type { ButtonHTMLAttributes, FormEvent, ReactNode } from "react";
+import { isApiConfigured } from "../api/httpClient";
 import { money } from "../utils";
 import { listingsService } from "../services/listings.service";
+import { savedListingsService } from "../services/saved.service";
 import { useRentCity } from "../app/useRentCity";
 import type { Listing, NavigateTo } from "../types";
 
@@ -161,6 +163,13 @@ export function ListingCard({ item, variant = "web", baseRoute = "/app", navigat
   const toggleSave = () => {
     dispatch({ type: "saved/toggle", payload: item.id });
     notify(saved ? "Đã bỏ lưu." : "Đã lưu nhà.");
+    if (isApiConfigured() && state.auth) {
+      const request = saved ? savedListingsService.removeRemote(item.id) : savedListingsService.saveRemote(item.id);
+      void request.catch(() => {
+        dispatch({ type: "saved/toggle", payload: item.id });
+        notify("Chưa đồng bộ được nhà đã lưu với backend.");
+      });
+    }
   };
 
   if (variant === "mobile") {
@@ -231,6 +240,8 @@ export function ListingTile({ item, navigate }: { item: Listing; navigate: Navig
 }
 
 export function MapPanel({ navigate }: { navigate: NavigateTo }) {
+  const { state } = useRentCity();
+  const featured = listingsService.featured(state.listings);
   return (
     <aside className="card map-card">
       <div className="listing-title">
@@ -248,7 +259,7 @@ export function MapPanel({ navigate }: { navigate: NavigateTo }) {
         <button className="pin amber" style={{ left: 76, top: 230 }} onClick={() => navigate("/web/listing/phong-tro-an-ninh")} aria-label="Phòng trọ" />
       </div>
       <div className="grid" style={{ marginTop: 16 }}>
-        {listingsService.featured().map((item) => (
+        {featured.map((item) => (
           <button className="card pad" key={item.id} onClick={() => navigate(`/web/listing/${item.id}`)} style={{ textAlign: "left" }}>
             <strong>{item.title}</strong>
             <p className="subtle">{item.district} · {money(item.price)}</p>

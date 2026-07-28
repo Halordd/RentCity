@@ -27,7 +27,27 @@ RentCity được chia thành các bề mặt sử dụng riêng:
 - Web app: bản chạy trên trình duyệt điện thoại/PWA cho người không cài app.
 - Admin: hệ thống nội bộ cho đội RentCity, tách riêng với phần quản lý nhà thông thường.
 
-Hiện tại dự án là frontend, mô phỏng đầy đủ giao diện và luồng thao tác chính. Dữ liệu đang là mock/local state để có thể trải nghiệm sản phẩm trước khi nối backend thật.
+Ở nhánh `develop`, RentCity là bản tích hợp gồm frontend React, backend NestJS và bộ E2E Playwright. Frontend vẫn giữ fallback mock/local state để trải nghiệm giao diện khi backend chưa bật, nhưng các luồng chính đã có service/API boundary để kiểm thử full-stack.
+
+```text
+front-end/                 Giao diện web, app mobile-style, phone web app/PWA và admin console
+back-end/                  API NestJS, Prisma schema, migrations, seed data và docs backend
+e2e/                       Playwright tests cho các luồng chính
+.github/workflows/         CI chạy frontend, backend và full-stack E2E
+```
+
+Local full-stack setup lives in `docs/local-development.md`.
+Production deployment notes live in `docs/production-deployment.md`.
+CI/CD notes live in `docs/ci-cd.md`.
+
+## Trạng Thái Release
+
+Release hiện tại: `v0.2.10`.
+
+- Frontend, backend, E2E và Docker production package phải pass GitHub Actions trước khi merge/deploy.
+- Production Docker Compose đã có service `migrate` để chạy Prisma migrations trước khi backend start.
+- `Production Docker package` trong CI hiện build image, bật stack thật, kiểm tra `/health/ready`, `/healthz` và `/listings`.
+- Docker local nên được xem là tài nguyên tạm: build history/cache có thể dọn bằng `npm run docker:clean` sau khi test xong.
 
 ## Workflow
 
@@ -75,3 +95,13 @@ flowchart TD
 - Quản lý cọc, thanh toán và hợp đồng ở mức giao diện.
 - Chủ nhà quản lý tin đăng, khách quan tâm và lịch xem.
 - Admin duyệt tin, xác minh chủ nhà, xử lý khiếu nại và theo dõi vận hành.
+
+## CI
+
+GitHub Actions tự phát hiện workspace trong repo:
+
+- Có `front-end/package.json` thì chạy frontend quality gate.
+- Có `back-end/package.json` thì chạy backend quality gate với Postgres và Redis.
+- Có đủ frontend, backend và Playwright config thì chạy full-stack E2E.
+- Có production compose thì build `migrate`, `frontend`, `backend`, chạy stack Docker production và smoke test API/frontend.
+- Job `Release readiness` là gate cuối cùng; job này chỉ xanh khi toàn bộ gate bắt buộc đã pass.

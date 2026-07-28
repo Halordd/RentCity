@@ -11,7 +11,7 @@ Frontend mô phỏng đầy đủ các bề mặt chính của RentCity trước
 - Web app: bản chạy trên trình duyệt điện thoại/PWA.
 - Admin: back-office nội bộ cho RentCity, tách riêng với phần quản lý nhà của chủ nhà.
 
-Ứng dụng hiện dùng mock data và `localStorage` để test luồng thao tác. Khi backend sẵn sàng, thay service mock bằng API call mà không cần viết lại UI.
+Ứng dụng hiện có service layer kết nối backend qua `VITE_API_BASE_URL` và vẫn giữ fallback mock/localStorage để demo không chết khi backend chưa bật. Khi có API thật, dữ liệu listings, saved homes, notifications, messages và admin queues sẽ được sync qua service layer.
 
 ## Stack
 
@@ -39,7 +39,9 @@ front-end/
     data.ts                      Mock listings, messages, admin rows
     types.ts                     Shared TypeScript models
     utils.ts                     Helper format tiền, route, asset
-    api/httpClient.ts            API client placeholder
+    api/httpClient.ts            Low-level fetch client, auth token store, refresh-token retry
+    api/apiClient.ts             Operation-key API wrapper generated from OpenAPI
+    api/generated.ts             Generated OpenAPI DTOs and endpoint metadata
     app/                         App provider, state, router helper
     components/                  UI components dùng chung
     features/web/                Web desktop
@@ -109,30 +111,41 @@ cmd /c npm start -- --port 4174
 
 ```bash
 cmd /c npm run typecheck
+cmd /c npm run api:generate
+cmd /c npm run api:check
 cmd /c npm run lint
 cmd /c npm run build
 cmd /c npm run check
 cmd /c npm run preview
 ```
 
-`npm run check` chạy TypeScript, ESLint và production build.
+`npm run api:generate` sinh `src/api/generated.ts` từ `../docs/api/openapi.json`. `npm run check` chạy API drift check, TypeScript, ESLint và production build.
 
-## State Và Mock Data
+## State, API Và Mock Data
 
 - State tổng nằm trong `src/app/AppProvider.tsx`.
 - Dữ liệu được lưu tạm vào `localStorage` để thao tác demo không mất ngay khi đổi màn.
+- Nếu `VITE_API_BASE_URL` có giá trị, app tự sync dữ liệu public listings và sync dữ liệu riêng sau khi OTP login thành công.
 - Mock listing/message/admin data nằm trong `src/data.ts`.
 - Service mock nằm trong:
   - `src/services/listings.service.ts`
   - `src/services/bookings.service.ts`
   - `src/services/admin.service.ts`
+- Service API thật đã tách thêm:
+  - `src/services/auth.service.ts`
+  - `src/services/saved.service.ts`
+  - `src/services/messages.service.ts`
+  - `src/services/notifications.service.ts`
+  - `src/services/apiMappers.ts`
 
 ## Nối Backend Sau Này
 
-Frontend đã có API client placeholder tại:
+Frontend đã có API client tại:
 
 ```text
 src/api/httpClient.ts
+src/api/apiClient.ts
+src/api/generated.ts
 ```
 
 Biến môi trường:
@@ -147,12 +160,23 @@ File mẫu:
 .env.example
 ```
 
-Khi backend sẵn sàng, ưu tiên thay mock data ở service layer trước:
+Các flow đã có đường API:
 
-- Listing/search/detail/saved: `src/services/listings.service.ts`
-- Booking create/reschedule/cancel: `src/services/bookings.service.ts`
-- Admin rows/actions/metrics: `src/services/admin.service.ts`
-- Auth, messages, payments nên tách tiếp thành service riêng khi có API thật.
+- Auth OTP/refresh/logout.
+- Public listings search/detail.
+- Saved listings sync/save/remove.
+- Booking create/reschedule/cancel.
+- Booking history sync through `GET /me/bookings`.
+- Messages conversation/messages/send/read.
+- Notifications list/read.
+- Owner dashboard metrics/pipeline through `GET /owner/dashboard`.
+- Admin metrics, listing review queue, verification queue, disputes, audit logs.
+
+Các phần vẫn cần backend/API bổ sung để frontend nối hoàn toàn:
+
+- Payment UI gọi `POST /payments/deposits` và mở checkout thật.
+- Contract UI gọi `POST /contracts`, `GET /contracts/:id`.
+- Owner dashboard API chi tiết hơn cho automation rules, tasks và response SLA.
 
 Chi tiết endpoint BE cần làm nằm ở:
 

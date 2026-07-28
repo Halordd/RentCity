@@ -39,19 +39,19 @@ function WebAppDashboard({ navigate }: NavigateProps) {
 
 function WebAppSearch({ navigate }: NavigateProps) {
   const { state } = useRentCity();
-  return <><h2>Tìm nhà trên web app</h2><SearchForm compact targetRoute="/web_app/search" navigate={navigate} /><div className="grid" style={{ marginTop: 18 }}>{listingsService.list(state.filters).map((item) => <ListingCard key={item.id} item={item} variant="mobile" baseRoute="/web_app" navigate={navigate} />)}</div></>;
+  return <><h2>Tìm nhà trên web app</h2><SearchForm compact targetRoute="/web_app/search" navigate={navigate} /><div className="grid" style={{ marginTop: 18 }}>{listingsService.list(state.filters, state.listings).map((item) => <ListingCard key={item.id} item={item} variant="mobile" baseRoute="/web_app" navigate={navigate} />)}</div></>;
 }
 
 function WebAppListing({ id, navigate }: ListingPageProps) {
-  const item = listingsService.getById(id);
   const { state, dispatch, notify } = useRentCity();
+  const item = listingsService.getById(id, state.listings);
   const saved = state.saved.includes(item.id);
   return <><img className="card" src={item.image} alt={item.title} style={{ height: 210, width: "100%", objectFit: "cover", marginBottom: 16 }} /><h2>{item.title}</h2><p className="subtle" style={{ marginTop: 8 }}>{item.address} · {item.area}m2</p><p className="price" style={{ marginTop: 12 }}>{money(item.price)}</p><div className="chip-row" style={{ marginTop: 14 }}>{item.tags.map((tag) => <span className="chip" key={tag}>{tag}</span>)}</div><div className="actions" style={{ marginTop: 18 }}><RouteButton to={`/web_app/booking/${item.id}`} navigate={navigate}>Đặt lịch</RouteButton><button className="btn secondary" onClick={() => { dispatch({ type: "saved/toggle", payload: item.id }); notify(saved ? "Đã bỏ lưu." : "Đã lưu nhà."); }}>{saved ? "Đã lưu" : "Lưu"}</button></div></>;
 }
 
 function WebAppSaved({ navigate }: NavigateProps) {
   const { state } = useRentCity();
-  const savedItems = listingsService.saved(state.saved);
+  const savedItems = listingsService.saved(state.saved, state.listings);
   return <><h2>Nhà đã lưu</h2><div className="grid" style={{ marginTop: 16 }}>{savedItems.length ? savedItems.map((item) => <ListingCard key={item.id} item={item} variant="mobile" baseRoute="/web_app" navigate={navigate} />) : <EmptyState title="Chưa lưu nhà nào" body="Bấm lưu ở một nhà phù hợp để xem lại tại đây." />}</div></>;
 }
 
@@ -61,7 +61,7 @@ function WebAppManage({ navigate }: NavigateProps) {
 
 function WebAppBookings() {
   const { state } = useRentCity();
-  return <><h2>Lịch xem trên web app</h2><div className="grid" style={{ marginTop: 16 }}>{state.bookings.map((booking) => { const item = listingsService.getById(booking.listingId); return <article className="mobile-card" key={booking.id}><div className="inner"><h3>{item.title}</h3><p className="subtle">{booking.date} · {booking.time}</p><span className="chip">{booking.status}</span></div></article>; })}</div></>;
+  return <><h2>Lịch xem trên web app</h2><div className="grid" style={{ marginTop: 16 }}>{state.bookings.map((booking) => { const item = listingsService.getById(booking.listingId, state.listings); return <article className="mobile-card" key={booking.id}><div className="inner"><h3>{item.title}</h3><p className="subtle">{booking.date} · {booking.time}</p><span className="chip">{booking.status}</span></div></article>; })}</div></>;
 }
 
 function WebAppProfile({ navigate }: NavigateProps) {
