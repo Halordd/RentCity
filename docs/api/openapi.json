@@ -1104,6 +1104,101 @@
         ]
       }
     },
+    "/owner/private-files/upload-intent": {
+      "post": {
+        "operationId": "OwnerController_createPrivateFileUploadIntent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivateFileUploadIntentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/owner/private-files/{id}/complete": {
+      "patch": {
+        "operationId": "OwnerController_completePrivateFileUpload",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletePrivateFileUploadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
+    "/owner/private-files/{id}/read": {
+      "get": {
+        "operationId": "OwnerController_privateFileRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Owner"
+        ]
+      }
+    },
     "/owner/bookings": {
       "get": {
         "operationId": "OwnerController_bookings",
@@ -1872,6 +1967,59 @@
           "contentType",
           "sizeBytes"
         ]
+      },
+      "CreatePrivateFileUploadIntentDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "IDENTITY_DOCUMENT",
+              "PROPERTY_DOCUMENT",
+              "CONTRACT_PDF",
+              "PAYMENT_RECEIPT",
+              "OTHER"
+            ],
+            "example": "IDENTITY_DOCUMENT"
+          },
+          "targetType": {
+            "type": "string",
+            "example": "verification"
+          },
+          "targetId": {
+            "type": "string",
+            "example": "verification-owner-demo"
+          },
+          "filename": {
+            "type": "string",
+            "example": "cccd-front.pdf"
+          },
+          "contentType": {
+            "type": "string",
+            "example": "application/pdf"
+          },
+          "sizeBytes": {
+            "type": "number",
+            "example": 1048576,
+            "minimum": 1,
+            "maximum": 10485760
+          }
+        },
+        "required": [
+          "category",
+          "filename",
+          "contentType",
+          "sizeBytes"
+        ]
+      },
+      "CompletePrivateFileUploadDto": {
+        "type": "object",
+        "properties": {
+          "checksum": {
+            "type": "string",
+            "example": "sha256:..."
+          }
+        }
       },
       "ReviewListingDto": {
         "type": "object",

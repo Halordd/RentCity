@@ -8,8 +8,10 @@ import { Roles } from "../../common/auth/roles.decorator";
 import { RolesGuard } from "../../common/auth/roles.guard";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { AddListingImageDto } from "./dto/add-listing-image.dto";
+import { CompletePrivateFileUploadDto } from "./dto/complete-private-file-upload.dto";
 import { CreateImageUploadIntentDto } from "./dto/create-image-upload-intent.dto";
 import { CreateOwnerListingDto } from "./dto/create-owner-listing.dto";
+import { CreatePrivateFileUploadIntentDto } from "./dto/create-private-file-upload-intent.dto";
 import { UpdateOwnerListingDto } from "./dto/update-owner-listing.dto";
 import { OwnerService } from "./owner.service";
 
@@ -49,6 +51,21 @@ export class OwnerController {
   @Post("listings/:id/images/upload-intent")
   async createImageUploadIntent(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string, @Body() body: CreateImageUploadIntentDto) {
     return ok(await this.ownerService.createImageUploadIntent(user, id, body));
+  }
+
+  @Post("private-files/upload-intent")
+  async createPrivateFileUploadIntent(@CurrentUser() user: AuthenticatedUser, @Body() body: CreatePrivateFileUploadIntentDto) {
+    return ok(await this.ownerService.createPrivateFileUploadIntent(user, body));
+  }
+
+  @Patch("private-files/:id/complete")
+  async completePrivateFileUpload(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string, @Body() body: CompletePrivateFileUploadDto) {
+    return ok(await this.ownerService.completePrivateFileUpload(user, id, body));
+  }
+
+  @Get("private-files/:id/read")
+  async privateFileRead(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return ok(await this.ownerService.privateFileReadIntent(user, id));
   }
 
   @Get("bookings")

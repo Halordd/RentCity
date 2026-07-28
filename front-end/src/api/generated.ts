@@ -107,6 +107,17 @@ export interface CreateImageUploadIntentDto {
   alt?: string;
   sortOrder?: number;
 }
+export interface CreatePrivateFileUploadIntentDto {
+  category: "IDENTITY_DOCUMENT" | "PROPERTY_DOCUMENT" | "CONTRACT_PDF" | "PAYMENT_RECEIPT" | "OTHER";
+  targetType?: string;
+  targetId?: string;
+  filename: string;
+  contentType: string;
+  sizeBytes: number;
+}
+export interface CompletePrivateFileUploadDto {
+  checksum?: string;
+}
 export interface ReviewListingDto {
   status: "DRAFT" | "PENDING_REVIEW" | "PUBLISHED" | "PAUSED" | "REJECTED";
   note?: string;
@@ -518,6 +529,37 @@ export interface ApiOperations {
     response: unknown;
     auth: true;
   };
+  "POST /owner/private-files/upload-intent": {
+    method: "POST";
+    path: "/owner/private-files/upload-intent";
+    requestBody: CreatePrivateFileUploadIntentDto;
+    pathParams: EmptyObject;
+    query: EmptyObject;
+    response: unknown;
+    auth: true;
+  };
+  "PATCH /owner/private-files/{id}/complete": {
+    method: "PATCH";
+    path: "/owner/private-files/{id}/complete";
+    requestBody: CompletePrivateFileUploadDto;
+    pathParams: {
+    id: string;
+  };
+    query: EmptyObject;
+    response: unknown;
+    auth: true;
+  };
+  "GET /owner/private-files/{id}/read": {
+    method: "GET";
+    path: "/owner/private-files/{id}/read";
+    requestBody: undefined;
+    pathParams: {
+    id: string;
+  };
+    query: EmptyObject;
+    response: unknown;
+    auth: true;
+  };
   "GET /owner/bookings": {
     method: "GET";
     path: "/owner/bookings";
@@ -679,6 +721,9 @@ export const apiOperations = {
   "PATCH /owner/listings/{id}": { method: "PATCH", path: "/owner/listings/{id}", auth: true },
   "POST /owner/listings/{id}/images": { method: "POST", path: "/owner/listings/{id}/images", auth: true },
   "POST /owner/listings/{id}/images/upload-intent": { method: "POST", path: "/owner/listings/{id}/images/upload-intent", auth: true },
+  "POST /owner/private-files/upload-intent": { method: "POST", path: "/owner/private-files/upload-intent", auth: true },
+  "PATCH /owner/private-files/{id}/complete": { method: "PATCH", path: "/owner/private-files/{id}/complete", auth: true },
+  "GET /owner/private-files/{id}/read": { method: "GET", path: "/owner/private-files/{id}/read", auth: true },
   "GET /owner/bookings": { method: "GET", path: "/owner/bookings", auth: true },
   "PATCH /owner/bookings/{id}/confirm": { method: "PATCH", path: "/owner/bookings/{id}/confirm", auth: true },
   "GET /admin/metrics": { method: "GET", path: "/admin/metrics", auth: true },
