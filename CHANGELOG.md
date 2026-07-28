@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.3.0 - 2026-07-28
+
+### Added
+
+- Production provider adapters for SMS (Twilio, Zalo ZNS), payments (PayOS, MoMo, VNPay), email (Resend), push notifications (Web Push / VAPID), and geocoding (Google Maps, Nominatim) behind environment-driven factory selection, with local providers as the default so CI and local development require no external secrets.
+- Private file storage model and endpoints for owner-uploaded identity documents, property documents, contract PDFs, and payment receipts, with signed download URLs scoped to owner and admin permissions.
+- S3 storage provider support for private file upload and read intents with configurable server-side encryption and signed URL expiry.
+- Automatic geocoding of listing addresses on owner create and update when a geocoding provider is configured.
+- Environment validation for all new provider configurations, with production-mode enforcement of required secrets when a provider is selected.
+- Production Docker Compose and `.env.production.example` now expose all provider environment variables for deployment.
+- Backend unit test coverage for provider env validation across SMS, payment, email, push, geocoding, and private storage configurations.
+
+### Changed
+
+- SMS provider interface extended to support both OTP and arbitrary text message delivery.
+- Owner service updated to manage private file upload intents, completion, and signed download URLs.
+- ESLint configuration updated to recognize Node.js and ES2022 globals for fetch-based provider implementations.
+
 ## v0.2.10 - 2026-07-02
 
 ### Added

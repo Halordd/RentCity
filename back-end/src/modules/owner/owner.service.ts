@@ -282,7 +282,7 @@ export class OwnerService {
     return file;
   }
 
-  private async geocodeListing(payload: Pick<CreateOwnerListingDto, "address" | "district" | "city">) {
+  private async geocodeListing(payload: { address?: string; district?: string; city?: string }) {
     if (!this.geocodingProvider || !payload.address) return {};
 
     const result = await this.geocodingProvider.geocode({

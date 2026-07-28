@@ -62,7 +62,7 @@ export class S3StorageProvider implements StorageProvider {
       Key: objectKey,
       ContentType: input.contentType,
       ContentLength: input.sizeBytes,
-      ServerSideEncryption: this.config.get<string>("S3_SERVER_SIDE_ENCRYPTION") || undefined
+      ServerSideEncryption: (this.config.get<string>("S3_SERVER_SIDE_ENCRYPTION") as "AES256" | "aws:kms" | undefined) || undefined
     });
     const uploadUrl = await getSignedUrl(this.client, command, { expiresIn: this.expiresInSeconds });
 

@@ -45,6 +45,9 @@ test("auth service rate-limits OTP requests per phone number", async () => {
   const smsProvider = {
     sendOtp: async () => {
       throw new Error("SMS provider should not be called when rate limit is exceeded");
+    },
+    sendText: async () => {
+      throw new Error("SMS provider should not be called when rate limit is exceeded");
     }
   } as SmsProvider;
   const service = new AuthService(prisma, {} as JwtService, createConfig({ OTP_REQUEST_LIMIT_PER_HOUR: 5 }), smsProvider, createRateLimitStore(true));
@@ -66,7 +69,8 @@ test("auth service hides dev OTP code in production", async () => {
     sendOtp: async (input) => {
       sentOtpPhone = input.phone;
       return { provider: "local", messageId: "message_1" };
-    }
+    },
+    sendText: async () => ({ provider: "local", messageId: "message_1" })
   } satisfies SmsProvider;
   const service = new AuthService(
     prisma,

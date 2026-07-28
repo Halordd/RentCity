@@ -38,7 +38,7 @@ export class GoogleGeocodingProvider implements GeocodingProvider {
       provider: "google",
       lat,
       lng,
-      formattedAddress: result.formatted_address
+      formattedAddress: result?.formatted_address
     };
   }
 
