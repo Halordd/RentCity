@@ -1,12 +1,15 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { BookingStatus, ListingStatus, UserRole } from "@prisma/client";
+import { ForbiddenException, Inject, Injectable, NotFoundException, Optional } from "@nestjs/common";
+import { BookingStatus, ListingStatus, PrivateFileStatus, UserRole } from "@prisma/client";
 import type { AuthenticatedUser } from "../../common/auth/auth.types";
 import { PrismaService } from "../../database/prisma.service";
+import { GEOCODING_PROVIDER, GeocodingProvider } from "../../integrations/maps/geocoding-provider.interface";
 import { STORAGE_PROVIDER, StorageProvider } from "../../integrations/storage/storage-provider.interface";
 import { NotificationsService } from "../notifications/notifications.service";
 import { AddListingImageDto } from "./dto/add-listing-image.dto";
+import { CompletePrivateFileUploadDto } from "./dto/complete-private-file-upload.dto";
 import { CreateImageUploadIntentDto } from "./dto/create-image-upload-intent.dto";
 import { CreateOwnerListingDto } from "./dto/create-owner-listing.dto";
+import { CreatePrivateFileUploadIntentDto } from "./dto/create-private-file-upload-intent.dto";
 import { UpdateOwnerListingDto } from "./dto/update-owner-listing.dto";
 
 @Injectable()
@@ -14,7 +17,8 @@ export class OwnerService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(STORAGE_PROVIDER) private readonly storageProvider: StorageProvider,
-    private readonly notifications: NotificationsService
+    private readonly notifications: NotificationsService,
+    @Optional() @Inject(GEOCODING_PROVIDER) private readonly geocodingProvider?: GeocodingProvider
   ) {}
 
   async dashboard(user: AuthenticatedUser) {
@@ -101,12 +105,15 @@ export class OwnerService {
   }
 
   async createListing(user: AuthenticatedUser, payload: CreateOwnerListingDto) {
+    const geocoded = await this.geocodeListing(payload);
+
     return this.prisma.listing.create({
       data: {
         ...payload,
         city: payload.city ?? "Ho Chi Minh City",
         amenities: payload.amenities ?? [],
         petAllowed: payload.petAllowed ?? false,
+        ...geocoded,
         ownerId: user.id,
         status: ListingStatus.DRAFT
       }
@@ -115,12 +122,14 @@ export class OwnerService {
 
   async updateListing(user: AuthenticatedUser, id: string, payload: UpdateOwnerListingDto) {
     await this.assertListingAccess(user, id);
+    const geocoded = payload.address || payload.district || payload.city ? await this.geocodeListing(payload) : {};
 
     return this.prisma.listing.update({
       where: { id },
       data: {
         ...payload,
-        amenities: payload.amenities
+        amenities: payload.amenities,
+        ...geocoded
       }
     });
   }
@@ -153,11 +162,58 @@ export class OwnerService {
       upload,
       image: {
         listingId: id,
-        url: upload.publicUrl,
+        url: upload.publicUrl ?? upload.uploadUrl,
         alt: payload.alt,
         sortOrder: payload.sortOrder ?? 0
       }
     };
+  }
+
+  async createPrivateFileUploadIntent(user: AuthenticatedUser, payload: CreatePrivateFileUploadIntentDto) {
+    const upload = await this.storageProvider.createPrivateFileUpload({
+      ownerId: user.id,
+      category: payload.category,
+      targetType: payload.targetType,
+      targetId: payload.targetId,
+      filename: payload.filename,
+      contentType: payload.contentType,
+      sizeBytes: payload.sizeBytes
+    });
+    const file = await this.prisma.privateFile.create({
+      data: {
+        ownerId: user.id,
+        category: payload.category,
+        targetType: payload.targetType,
+        targetId: payload.targetId,
+        filename: payload.filename,
+        contentType: payload.contentType,
+        sizeBytes: payload.sizeBytes,
+        provider: upload.provider,
+        objectKey: upload.objectKey,
+        status: PrivateFileStatus.PENDING_UPLOAD
+      }
+    });
+
+    return { file, upload };
+  }
+
+  async completePrivateFileUpload(user: AuthenticatedUser, id: string, payload: CompletePrivateFileUploadDto) {
+    await this.assertPrivateFileAccess(user, id);
+
+    return this.prisma.privateFile.update({
+      where: { id },
+      data: {
+        status: PrivateFileStatus.ACTIVE,
+        checksum: payload.checksum
+      }
+    });
+  }
+
+  async privateFileReadIntent(user: AuthenticatedUser, id: string) {
+    const file = await this.assertPrivateFileAccess(user, id);
+    const read = await this.storageProvider.createPrivateFileRead(file.objectKey);
+
+    return { file, read };
   }
 
   async bookings(user: AuthenticatedUser) {
@@ -215,5 +271,26 @@ export class OwnerService {
 
   private ownerScopedListingWhere(user: AuthenticatedUser) {
     return user.role === UserRole.ADMIN ? {} : { ownerId: user.id };
+  }
+
+  private async assertPrivateFileAccess(user: AuthenticatedUser, id: string) {
+    const file = await this.prisma.privateFile.findUnique({ where: { id } });
+    if (!file) throw new NotFoundException("Private file not found");
+    if (user.role !== UserRole.ADMIN && file.ownerId !== user.id) {
+      throw new ForbiddenException("Cannot access this private file");
+    }
+    return file;
+  }
+
+  private async geocodeListing(payload: Pick<CreateOwnerListingDto, "address" | "district" | "city">) {
+    if (!this.geocodingProvider || !payload.address) return {};
+
+    const result = await this.geocodingProvider.geocode({
+      address: payload.address,
+      district: payload.district,
+      city: payload.city ?? "Ho Chi Minh City"
+    });
+
+    return result ? { lat: result.lat, lng: result.lng } : {};
   }
 }

@@ -79,6 +79,20 @@ enum NotificationStatus {
   SKIPPED
 }
 
+enum PrivateFileCategory {
+  IDENTITY_DOCUMENT
+  PROPERTY_DOCUMENT
+  CONTRACT_PDF
+  PAYMENT_RECEIPT
+  OTHER
+}
+
+enum PrivateFileStatus {
+  PENDING_UPLOAD
+  ACTIVE
+  REVOKED
+}
+
 model User {
   id            String      @id @default(cuid())
   phone         String      @unique
@@ -105,6 +119,7 @@ model User {
   pushSubscriptions PushSubscription[]
   sentConversations Conversation[] @relation("TenantConversations")
   ownedConversations Conversation[] @relation("OwnerConversations")
+  privateFiles  PrivateFile[] @relation("PrivateFileOwner")
 }
 
 model OtpChallenge {
@@ -353,4 +368,26 @@ model Notification {
 
   @@index([status, scheduledAt])
   @@index([userId, createdAt])
+}
+
+model PrivateFile {
+  id          String              @id @default(cuid())
+  ownerId     String
+  category    PrivateFileCategory
+  status      PrivateFileStatus   @default(PENDING_UPLOAD)
+  targetType  String?
+  targetId    String?
+  filename    String
+  contentType String
+  sizeBytes   Int
+  provider    String
+  objectKey   String              @unique
+  checksum    String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  owner User @relation("PrivateFileOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, category, createdAt])
+  @@index([targetType, targetId])
 }

@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import type { CreateUploadIntentInput, StorageProvider, UploadIntent } from "./storage-provider.interface";
-import { assertListingImageUpload, createListingImageObjectKey } from "./storage-utils";
+import type { CreatePrivateFileUploadInput, CreateUploadIntentInput, ReadIntent, StorageProvider, UploadIntent } from "./storage-provider.interface";
+import { assertListingImageUpload, assertPrivateFileUpload, createListingImageObjectKey, createPrivateFileObjectKey } from "./storage-utils";
 
 @Injectable()
 export class S3StorageProvider implements StorageProvider {
@@ -50,6 +50,50 @@ export class S3StorageProvider implements StorageProvider {
         "content-type": input.contentType
       },
       expiresAt: new Date(Date.now() + this.expiresInSeconds * 1000).toISOString()
+    };
+  }
+
+  async createPrivateFileUpload(input: CreatePrivateFileUploadInput): Promise<UploadIntent> {
+    assertPrivateFileUpload(input);
+
+    const objectKey = createPrivateFileObjectKey(input);
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: objectKey,
+      ContentType: input.contentType,
+      ContentLength: input.sizeBytes,
+      ServerSideEncryption: this.config.get<string>("S3_SERVER_SIDE_ENCRYPTION") || undefined
+    });
+    const uploadUrl = await getSignedUrl(this.client, command, { expiresIn: this.expiresInSeconds });
+
+    return {
+      provider: "s3",
+      objectKey,
+      uploadUrl,
+      method: "PUT",
+      headers: {
+        "content-type": input.contentType
+      },
+      expiresAt: new Date(Date.now() + this.expiresInSeconds * 1000).toISOString()
+    };
+  }
+
+  async createPrivateFileRead(objectKey: string): Promise<ReadIntent> {
+    const expiresIn = this.config.get<number>("S3_PRIVATE_READ_EXPIRES_SECONDS", 300);
+    const readUrl = await getSignedUrl(
+      this.client,
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: objectKey
+      }),
+      { expiresIn }
+    );
+
+    return {
+      provider: "s3",
+      objectKey,
+      readUrl,
+      expiresAt: new Date(Date.now() + expiresIn * 1000).toISOString()
     };
   }
 

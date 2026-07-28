@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { CreateUploadIntentInput, StorageProvider, UploadIntent } from "./storage-provider.interface";
-import { assertListingImageUpload, createListingImageObjectKey } from "./storage-utils";
+import { CreatePrivateFileUploadInput, CreateUploadIntentInput, ReadIntent, StorageProvider, UploadIntent } from "./storage-provider.interface";
+import { assertListingImageUpload, assertPrivateFileUpload, createListingImageObjectKey, createPrivateFileObjectKey } from "./storage-utils";
 
 @Injectable()
 export class LocalStorageProvider implements StorageProvider {
@@ -25,6 +25,36 @@ export class LocalStorageProvider implements StorageProvider {
         "content-type": input.contentType
       },
       expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    };
+  }
+
+  async createPrivateFileUpload(input: CreatePrivateFileUploadInput): Promise<UploadIntent> {
+    assertPrivateFileUpload(input);
+
+    const baseUrl = this.config.get<string>("UPLOAD_PUBLIC_BASE_URL", "http://localhost:4000/uploads");
+    const objectKey = createPrivateFileObjectKey(input);
+    const uploadUrl = `${baseUrl.replace(/\/$/, "")}/${objectKey}`;
+
+    return {
+      provider: "local",
+      objectKey,
+      uploadUrl,
+      method: "PUT",
+      headers: {
+        "content-type": input.contentType
+      },
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    };
+  }
+
+  async createPrivateFileRead(objectKey: string): Promise<ReadIntent> {
+    const baseUrl = this.config.get<string>("UPLOAD_PUBLIC_BASE_URL", "http://localhost:4000/uploads");
+
+    return {
+      provider: "local",
+      objectKey,
+      readUrl: `${baseUrl.replace(/\/$/, "")}/${objectKey}`,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString()
     };
   }
 }
